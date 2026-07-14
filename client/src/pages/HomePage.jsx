@@ -80,6 +80,7 @@ const HomePage = () => {
 
     try {
       // 1. Submit booking details to local DB via API
+      console.log('[Booking Submit] Sending to database...');
       await api.post('/consultations', {
         name: bookingName,
         email: bookingEmail,
@@ -88,16 +89,21 @@ const HomePage = () => {
         message: bookingMessage || `Client requested consultation for service: ${serviceToBook.title}`,
         type: 'booking',
       });
+      console.log('[Booking Submit] Saved in DB successfully!');
 
-      // 2. Trigger EmailJS notification
-      await sendEmailNotification({
-        name: bookingName,
-        email: bookingEmail,
-        phone: bookingPhone,
-        serviceType: serviceToBook.title,
-        message: bookingMessage || `Client requested consultation for service: ${serviceToBook.title}`,
-        type: 'booking'
-      });
+      // 2. Trigger EmailJS notification (optional, will not block if fails)
+      try {
+        await sendEmailNotification({
+          name: bookingName,
+          email: bookingEmail,
+          phone: bookingPhone,
+          serviceType: serviceToBook.title,
+          message: bookingMessage || `Client requested consultation for service: ${serviceToBook.title}`,
+          type: 'booking'
+        });
+      } catch (emailErr) {
+        console.error('[Booking Submit] EmailJS error (non-blocking):', emailErr);
+      }
 
       setBookingSuccess(true);
       setBookingName('');
@@ -105,7 +111,8 @@ const HomePage = () => {
       setBookingPhone('');
       setBookingMessage('');
     } catch (err) {
-      alert('Consultation request failed. Please try again.');
+      console.error('[Booking Submit] Connection/Server error:', err);
+      alert(`Consultation request failed: ${err.message || 'Please try again.'}`);
     } finally {
       setBookingLoading(false);
     }
@@ -116,6 +123,7 @@ const HomePage = () => {
     setContactLoading(true);
     try {
       // 1. Submit contact details to local DB via API
+      console.log('[Contact Submit] Sending to database...');
       await api.post('/consultations', {
         name: contactName,
         email: contactEmail,
@@ -124,16 +132,21 @@ const HomePage = () => {
         message: contactMessage,
         type: 'callback'
       });
+      console.log('[Contact Submit] Saved in DB successfully!');
 
-      // 2. Trigger EmailJS notification
-      await sendEmailNotification({
-        name: contactName,
-        email: contactEmail,
-        phone: contactPhone,
-        serviceType: contactServiceType,
-        message: contactMessage,
-        type: 'callback'
-      });
+      // 2. Trigger EmailJS notification (optional, will not block if fails)
+      try {
+        await sendEmailNotification({
+          name: contactName,
+          email: contactEmail,
+          phone: contactPhone,
+          serviceType: contactServiceType,
+          message: contactMessage,
+          type: 'callback'
+        });
+      } catch (emailErr) {
+        console.error('[Contact Submit] EmailJS error (non-blocking):', emailErr);
+      }
 
       setContactSuccess(true);
       setContactName('');
@@ -141,7 +154,8 @@ const HomePage = () => {
       setContactPhone('');
       setContactMessage('');
     } catch (err) {
-      alert('Failed to send message. Please try again.');
+      console.error('[Contact Submit] Connection/Server error:', err);
+      alert(`Failed to send message: ${err.message || 'Please try again.'}`);
     } finally {
       setContactLoading(false);
     }
@@ -473,7 +487,7 @@ const HomePage = () => {
                           paddingTop: '10px'
                         }}>
                           <Phone size={12} style={{ color: 'var(--accent-gold)' }} />
-                          <span>Direct Support: <strong style={{ color: 'var(--white)' }}>+91 98765 43210</strong></span>
+                          <span>{t('Direct Support')}: <strong style={{ color: 'var(--white)' }}>+91 87904 20585</strong></span>
                         </div>
 
                         {/* Actions Button Bar */}
@@ -493,10 +507,10 @@ const HomePage = () => {
                               fontWeight: '600'
                             }}
                           >
-                            Book Call
+                            {t('Book Call')}
                           </button>
                           <a
-                            href={`https://wa.me/+919876543210?text=Hello%20Nissi%20Constructions,%20I%20am%20interested%20in%20your%20${encodeURIComponent(service.title)}%20services.`}
+                            href={`https://wa.me/917601078843?text=Hello%20Nissi%20Constructions,%20I%20am%20interested%20in%20your%20${encodeURIComponent(service.title)}%20services.`}
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-secondary"
@@ -512,7 +526,7 @@ const HomePage = () => {
                             }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            WhatsApp <ArrowUpRight size={12} />
+                            {t('WhatsApp')} <ArrowUpRight size={12} />
                           </a>
                         </div>
                       </div>
@@ -586,14 +600,14 @@ const HomePage = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" style={{ color: 'var(--text-light)' }}>Phone Number</label>
+                    <label className="form-label" style={{ color: 'var(--text-light)' }}>{t('Phone Number')}</label>
                     <input
                       type="tel"
                       className="form-control"
                       required
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="e.g. +91 87904 20585"
                     />
                   </div>
                 </div>
@@ -724,16 +738,16 @@ const HomePage = () => {
                     className="btn btn-primary"
                     style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                   >
-                    Request Consultation <PhoneCall size={16} />
+                    {t('Request Consultation')} <PhoneCall size={16} />
                   </button>
                   <a
-                    href={`https://wa.me/+919876543210?text=Hello,%20I%20am%20interested%20in%20your%20${encodeURIComponent(selectedService.title)}%20services.`}
+                    href={`https://wa.me/917601078843?text=Hello,%20I%20am%20interested%20in%20your%20${encodeURIComponent(selectedService.title)}%20services.`}
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-secondary"
                     style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                   >
-                    Chat via WhatsApp <ArrowUpRight size={16} />
+                    {t('Chat via WhatsApp')} <ArrowUpRight size={16} />
                   </a>
                 </div>
               </div>
@@ -860,14 +874,14 @@ const HomePage = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ color: 'var(--text-light)' }}>Phone Number</label>
+                  <label className="form-label" style={{ color: 'var(--text-light)' }}>{t('Phone Number')}</label>
                   <input
                     type="tel"
                     className="form-control"
                     required
                     value={bookingPhone}
                     onChange={(e) => setBookingPhone(e.target.value)}
-                    placeholder="e.g. +91 98765 43210"
+                    placeholder="e.g. +91 87904 20585"
                   />
                 </div>
                 <div className="form-group">

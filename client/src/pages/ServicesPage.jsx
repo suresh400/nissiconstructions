@@ -58,6 +58,7 @@ const ServicesPage = () => {
 
     try {
       // 1. Submit lead details to DB
+      console.log('[Lead Submit] Sending to database...');
       await api.post('/consultations', {
         name,
         email,
@@ -66,16 +67,21 @@ const ServicesPage = () => {
         message: message || `Client requested consultation for service: ${serviceToBook.title}`,
         type: 'booking',
       });
+      console.log('[Lead Submit] Saved in DB successfully!');
 
-      // 2. Trigger EmailJS notification
-      await sendEmailNotification({
-        name,
-        email,
-        phone,
-        serviceType: serviceToBook.title,
-        message: message || `Client requested consultation for service: ${serviceToBook.title}`,
-        type: 'booking'
-      });
+      // 2. Trigger EmailJS notification (optional, will not block if fails)
+      try {
+        await sendEmailNotification({
+          name,
+          email,
+          phone,
+          serviceType: serviceToBook.title,
+          message: message || `Client requested consultation for service: ${serviceToBook.title}`,
+          type: 'booking'
+        });
+      } catch (emailErr) {
+        console.error('[Lead Submit] EmailJS error (non-blocking):', emailErr);
+      }
 
       setFormSuccess(true);
       setName('');
@@ -83,7 +89,8 @@ const ServicesPage = () => {
       setPhone('');
       setMessage('');
     } catch (err) {
-      alert('Lead submission failed. Please try again.');
+      console.error('[Lead Submit] Connection/Server error:', err);
+      alert(`Lead submission failed: ${err.message || 'Please try again.'}`);
     } finally {
       setFormLoading(false);
     }

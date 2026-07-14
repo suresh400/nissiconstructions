@@ -17,6 +17,7 @@ const ContactPage = () => {
     setLoading(true);
     try {
       // 1. Save to local database via API
+      console.log('[Contact Submit] Sending to database...');
       await api.post('/consultations', {
         name,
         email,
@@ -25,16 +26,21 @@ const ContactPage = () => {
         message,
         type: 'callback'
       });
+      console.log('[Contact Submit] Saved in DB successfully!');
 
-      // 2. Trigger EmailJS notification
-      await sendEmailNotification({
-        name,
-        email,
-        phone,
-        serviceType,
-        message,
-        type: 'callback'
-      });
+      // 2. Trigger EmailJS notification (optional, will not block if fails)
+      try {
+        await sendEmailNotification({
+          name,
+          email,
+          phone,
+          serviceType,
+          message,
+          type: 'callback'
+        });
+      } catch (emailErr) {
+        console.error('[Contact Submit] EmailJS error (non-blocking):', emailErr);
+      }
 
       setSuccess(true);
       setName('');
@@ -42,7 +48,8 @@ const ContactPage = () => {
       setPhone('');
       setMessage('');
     } catch (err) {
-      alert('Failed to send message. Please check connection and try again.');
+      console.error('[Contact Submit] Connection/Server error:', err);
+      alert(`Failed to send message: ${err.message || 'Please check connection and try again.'}`);
     } finally {
       setLoading(false);
     }
