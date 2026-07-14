@@ -11,10 +11,12 @@ const ContactPage = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage('');
     try {
       // 1. Save to local database via API
       console.log('[Contact Submit] Sending to database...');
@@ -49,7 +51,7 @@ const ContactPage = () => {
       setMessage('');
     } catch (err) {
       console.error('[Contact Submit] Connection/Server error:', err);
-      alert(`Failed to send message: ${err.message || 'Please check connection and try again.'}`);
+      setErrorMessage(err.message || 'Failed to send message. Please check connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -159,6 +161,22 @@ const ContactPage = () => {
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                   We will reach out as soon as possible.
                 </p>
+              </div>
+            ) : null}
+
+            {errorMessage ? (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#EF4444',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                fontSize: '0.9rem',
+                lineHeight: '1.5'
+              }}>
+                <strong style={{ display: 'block', marginBottom: '5px' }}>Submission Error:</strong>
+                {errorMessage}
               </div>
             ) : null}
 
