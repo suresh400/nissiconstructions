@@ -1,0 +1,116 @@
+.comparison-slider-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.06);
+  border: 1px solid var(--border-glass);
+  user-select: none;
+  cursor: col-resize;
+  background-color: var(--secondary-dark);
+}
+
+.slider-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.base-image {
+  width: 100%;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.overlay-image {
+  max-width: none;
+}
+
+.slider-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent-gold);
+  cursor: col-resize;
+  transform: translateX(-50%);
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-color: #ffffff;
+  border: 2px solid var(--accent-gold);
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-gold);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  pointer-events: auto;
+  cursor: col-resize;
+}
+
+.slider-divider:hover .slider-handle,
+.slider-handle:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  background-color: #fcfcfc;
+}
+
+.slider-label {
+  position: absolute;
+  bottom: 20px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #111111;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  pointer-events: none;
+  z-index: 8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: opacity 0.3s ease;
+}
+
+.label-left {
+  left: 20px;
+}
+
+.label-right {
+  right: 20px;
+  background: rgba(17, 17, 17, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .comparison-slider-container {
+    aspect-ratio: 4 / 3; /* Better fit for tablet/mobile screens */
+  }
+  
+  .slider-handle {
+    width: 40px;
+    height: 40px;
+  }
+}
