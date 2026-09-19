@@ -25,6 +25,12 @@ const ThemeSlider = ({ children }) => {
       });
     };
     window.addEventListener('resize', handleResize);
+
+    // Ensure body has dark-mode class if theme is dark
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 

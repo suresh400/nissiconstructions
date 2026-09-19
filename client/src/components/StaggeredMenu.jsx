@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import './StaggeredMenu.css';
 import { useLanguage } from '../utils/LanguageContext';
@@ -32,6 +32,22 @@ export const StaggeredMenu = ({
   const textInnerRef = useRef(null);
   const textWrapRef = useRef(null);
   const [textLines, setTextLines] = useState(['Menu', 'Close']);
+  const headerRef = useRef(null);
+
+  // Scroll listener — adds 'scrolled' class for solid navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      if (headerRef.current) {
+        if (window.scrollY > 50) {
+          headerRef.current.classList.add('scrolled');
+        } else {
+          headerRef.current.classList.remove('scrolled');
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const openTlRef = useRef(null);
   const closeTweenRef = useRef(null);
@@ -258,7 +274,7 @@ export const StaggeredMenu = ({
           ease: 'power2.out'
         });
       } else {
-        gsap.set(btn, { color: menuButtonColor });
+        btn.style.color = '';
       }
     },
     [openMenuButtonColor, menuButtonColor, changeMenuColorOnOpen]
@@ -270,7 +286,7 @@ export const StaggeredMenu = ({
         const targetColor = openRef.current ? openMenuButtonColor : menuButtonColor;
         gsap.set(toggleBtnRef.current, { color: targetColor });
       } else {
-        gsap.set(toggleBtnRef.current, { color: menuButtonColor });
+        toggleBtnRef.current.style.color = '';
       }
     }
   }, [changeMenuColorOnOpen, menuButtonColor, openMenuButtonColor]);
@@ -381,9 +397,9 @@ export const StaggeredMenu = ({
         })()}
       </div>
       
-      <header className="staggered-menu-header" aria-label="Main navigation header">
+      <header ref={headerRef} className="staggered-menu-header" aria-label="Main navigation header">
         <a href="#home" className="logo-container logo-container-staggered" onClick={(e) => handleItemClick(e, '#home')} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', pointerEvents: 'auto' }}>
-          <div style={{
+          <div className="navbar-logo-badge" style={{
             width: '40px',
             height: '40px',
             border: '2px solid var(--white)',
@@ -400,7 +416,7 @@ export const StaggeredMenu = ({
           }}>
             N
           </div>
-          <span className="logo-text" style={{ background: 'none', WebkitTextFillColor: 'var(--white)', color: 'var(--white)', fontWeight: 'bold' }}>{t('Nissi Constructions')}</span>
+          <span className="logo-text navbar-logo-text" style={{ background: 'none', WebkitTextFillColor: 'var(--white)', color: 'var(--white)', fontWeight: 'bold' }}>{t('Nissi Constructions')}</span>
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', pointerEvents: 'auto' }}>

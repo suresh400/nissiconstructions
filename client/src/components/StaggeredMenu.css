@@ -12,8 +12,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 100;
+  z-index: 100001;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .staggered-menu-header {
@@ -27,7 +28,17 @@
   padding: 1.5rem 5%;
   background: transparent;
   pointer-events: none;
-  z-index: 110;
+  z-index: 100002;
+  transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.staggered-menu-header.scrolled {
+  background: var(--primary-dark);
+  padding: 1rem 5%;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .staggered-menu-header > * {
@@ -134,12 +145,12 @@
   height: 100%;
   background: var(--card-glass);
   border-left: 1px solid var(--border-glass);
-  box-shadow: -10px 0 40px rgba(0,0,0,0.03);
+  box-shadow: -10px 0 40px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   padding: 8em 3em 3em 3em;
   overflow-y: auto;
-  z-index: 102;
+  z-index: 100003;
   pointer-events: auto;
   opacity: 0;
 }
@@ -159,7 +170,7 @@
   bottom: 0;
   width: clamp(280px, 40vw, 440px);
   pointer-events: none;
-  z-index: 101;
+  z-index: 100002;
   opacity: 0;
 }
 
@@ -290,4 +301,94 @@
     left: 0;
     right: 0;
   }
+}
+
+/* ============================================================
+   Navbar Dark Mode & Light Mode Explicit Color Rules
+   Guarantees pure white text in dark mode and clear contrast in light mode
+   ============================================================ */
+
+/* Dark Mode - Pure White Navbar Text & Elements */
+body.dark-mode .staggered-menu-header,
+.theme-dark-wrapper .staggered-menu-header {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .staggered-menu-header.scrolled,
+.theme-dark-wrapper .staggered-menu-header.scrolled {
+  background: #111111 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark-mode .navbar-logo-text,
+body.dark-mode .staggered-menu-header .logo-text,
+.theme-dark-wrapper .navbar-logo-text,
+.theme-dark-wrapper .staggered-menu-header .logo-text {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background: none !important;
+}
+
+body.dark-mode .navbar-logo-badge,
+body.dark-mode .staggered-menu-header .logo-container div,
+.theme-dark-wrapper .navbar-logo-badge,
+.theme-dark-wrapper .staggered-menu-header .logo-container div {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  background: #111111 !important;
+}
+
+body.dark-mode .sm-toggle,
+.theme-dark-wrapper .sm-toggle {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .sm-toggle-line,
+.theme-dark-wrapper .sm-toggle-line {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .sm-icon-line,
+.theme-dark-wrapper .sm-icon-line {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+}
+
+body.dark-mode .staggered-menu-panel .sm-panel-item,
+.theme-dark-wrapper .staggered-menu-panel .sm-panel-item {
+  color: #FFFFFF !important;
+}
+
+/* Light Mode - Dark / Charcoal Text & Elements */
+body:not(.dark-mode) .staggered-menu-header.scrolled {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+body:not(.dark-mode) .theme-light-wrapper .navbar-logo-text,
+body:not(.dark-mode) .theme-light-wrapper .staggered-menu-header .logo-text {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+body:not(.dark-mode) .theme-light-wrapper .navbar-logo-badge,
+body:not(.dark-mode) .theme-light-wrapper .staggered-menu-header .logo-container div {
+  color: #111111 !important;
+  border-color: #111111 !important;
+  background: #FFFFFF !important;
+}
+
+body:not(.dark-mode) .theme-light-wrapper .sm-toggle {
+  color: #111111 !important;
+}
+
+body:not(.dark-mode) .theme-light-wrapper .sm-toggle-line {
+  color: #111111 !important;
+}
+
+body:not(.dark-mode) .theme-light-wrapper .sm-icon-line {
+  background: #111111 !important;
+  background-color: #111111 !important;
 }

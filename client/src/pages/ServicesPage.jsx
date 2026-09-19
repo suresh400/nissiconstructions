@@ -3,6 +3,7 @@ import {
   HardHat, Home, Bath, Grid, Wrench, Paintbrush, Layers, Square, Hammer, 
   Database, Building2, PlusCircle, Castle, RefreshCw, Palette, Shield, 
   ChefHat, Droplets, Layout, Triangle, CloudRain, Activity, ShieldAlert,
+  Zap, Sofa, DoorClosed, Trees,
   CheckCircle2, ChevronRight, ChevronDown, Phone, PhoneCall, HelpCircle, FileCheck2, ArrowUpRight, X
 } from 'lucide-react';
 import { api } from '../utils/api';
@@ -12,7 +13,8 @@ const ServiceIcon = ({ iconName, size = 28, className, style }) => {
   const IconComponent = {
     HardHat, Home, Bath, Grid, Wrench, Paintbrush, Layers, Square, Hammer, 
     Database, Building2, PlusCircle, Castle, RefreshCw, Palette, Shield, 
-    ChefHat, Droplets, Layout, Triangle, CloudRain, Activity, ShieldAlert
+    ChefHat, Droplets, Layout, Triangle, CloudRain, Activity, ShieldAlert,
+    Zap, Sofa, DoorClosed, Trees
   }[iconName] || HardHat;
   
   return <IconComponent size={size} className={className} style={style} />;
@@ -33,14 +35,214 @@ const ServicesPage = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formSuccess, setFormSuccess] = useState(false);
 
+  // 10 Core Services requested by client
+  const fallbackServices = [
+    {
+      _id: 's1',
+      title: 'Construction & Civil Work',
+      icon: 'Building2',
+      category: 'Civil & Structural',
+      description: 'House construction, extensions, masonry, concrete, plastering, roofing, compound walls, structural work.',
+      benefits: [
+        'Turnkey house construction & extensions',
+        'Reinforced concrete & masonry precision',
+        'Roofing, compound walls & structural work',
+        'Strict building code compliance & structural warranty'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Architectural Blueprint & Site Survey', description: 'Detailed soil evaluation, site survey, and architectural engineering blueprints.' },
+        { stepNumber: 2, title: 'Foundation & RCC Framework', description: 'High-grade reinforced concrete foundation, pillar casting, and structural framing.' },
+        { stepNumber: 3, title: 'Masonry, Roofing & Plastering', description: 'Precision brickwork, weather-proof roofing, smooth internal and external plastering.' },
+        { stepNumber: 4, title: 'Quality Sign-Off & Handover', description: 'Structural audit, quality clearance, and handover with full documentation.' }
+      ]
+    },
+    {
+      _id: 's2',
+      title: 'Painting & Wall Work',
+      icon: 'Paintbrush',
+      category: 'Finishing & Protection',
+      description: 'Interior/exterior painting, waterproofing, wall repairs, texture painting, wallpaper, dampness and crack repair.',
+      benefits: [
+        'Premium Asian Paints & Berger luxury coatings',
+        'Permanent dampness & efflorescence treatment',
+        'Designer texture finishes & imported wallpapers',
+        'Weather-guard exterior anti-fungal protection'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Surface Inspection & Crack Repair', description: 'Thorough diagnosis of dampness, scraping, and structural crack filling.' },
+        { stepNumber: 2, title: 'Waterproof Priming', description: 'Application of deep-penetrating water barrier primer coats.' },
+        { stepNumber: 3, title: 'Putty & Texture Styling', description: 'Double coat acrylic wall putty and custom designer texture application.' },
+        { stepNumber: 4, title: 'Double Finish Coat & Cleanup', description: 'Flawless luxury paint coats and complete site cleanup.' }
+      ]
+    },
+    {
+      _id: 's3',
+      title: 'Interior Design & Renovation',
+      icon: 'Sofa',
+      category: 'Architecture & Design',
+      description: 'Complete interiors, home renovation, living room, bedroom, false ceiling, partitions, 3D designs and remodeling.',
+      benefits: [
+        'High-fidelity 3D walkthroughs before start',
+        'Space-optimized living room & bedroom layouts',
+        'Designer false ceilings with ambient cove lighting',
+        'End-to-end turnkey remodel management'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Design Consultation & 3D Render', description: 'Understanding your lifestyle, space planning, and creating 3D visualization.' },
+        { stepNumber: 2, title: 'Material & Palette Curation', description: 'Selecting luxury veneers, laminates, fabrics, and hardware.' },
+        { stepNumber: 3, title: 'On-Site Execution & Framing', description: 'False ceiling installation, drywall partitions, and architectural lighting.' },
+        { stepNumber: 4, title: 'Finishing & Handover', description: 'Final styling, quality checks, and turnkey handover.' }
+      ]
+    },
+    {
+      _id: 's4',
+      title: 'Kitchen & Bathroom',
+      icon: 'Bath',
+      category: 'Interior & Wet Areas',
+      description: 'Modular kitchens, cabinets, countertops, bathroom renovation, tiles, sanitary fittings, waterproofing.',
+      benefits: [
+        'German soft-close modular kitchen cabinets',
+        'Quartz, granite & composite luxury countertops',
+        'Multi-barrier waterproof bathroom membranes',
+        'Designer sanitary fittings & anti-skid floor tiles'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Ergonomic Layout & Plumbing Planning', description: 'Optimizing work triangle, ventilation, and plumbing layout.' },
+        { stepNumber: 2, title: 'Civil & Waterproofing Execution', description: 'Complete bathroom waterproofing, slope creation, and plumbing lines.' },
+        { stepNumber: 3, title: 'Cabinetry & Stone Countertops', description: 'Precision installation of modular units and stone countertops.' },
+        { stepNumber: 4, title: 'Fixture Fitting & Pressure Testing', description: 'Installing premium sanitary fixtures and pressure-testing supply lines.' }
+      ]
+    },
+    {
+      _id: 's5',
+      title: 'Electrical & Plumbing',
+      icon: 'Zap',
+      category: 'Utilities & MEP',
+      description: 'Wiring, switches, lights, fans, electrical repairs, pipes, taps, drainage, leakage and water-tank work.',
+      benefits: [
+        'Concealed fire-retardant copper wiring (FRLS)',
+        'Architectural LED profiles & modular smart switches',
+        'Heavy-duty CPVC/UPVC water and drainage piping',
+        'Pressure pumps, leakage resolution & water tank setup'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Circuit & Flow Diagnostics', description: 'Electrical load calculation and plumbing pressure assessment.' },
+        { stepNumber: 2, title: 'Chasing & Concealed Conduit Laying', description: 'Wall cutting, conduit embedding, and pipe routing.' },
+        { stepNumber: 3, title: 'Fittings & Fixture Installation', description: 'Installing modular switchboards, designer fixtures, taps, and valves.' },
+        { stepNumber: 4, title: 'Safety Testing & Certification', description: 'Megger insulation testing, earthing check, and hydraulic leak tests.' }
+      ]
+    },
+    {
+      _id: 's6',
+      title: 'Carpentry & Furniture',
+      icon: 'Hammer',
+      category: 'Woodwork & Furniture',
+      description: 'Wardrobes, TV units, beds, shelves, doors, custom furniture, furniture repair and polishing.',
+      benefits: [
+        'Custom built-in wardrobes with sliding / soft-close doors',
+        'Modern floating entertainment & TV console units',
+        'Boiling Water Resistant (BWR) marine plywood',
+        'High-gloss PU polish, melamine & veneer detailing'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Measurement & Custom Design', description: 'Exact dimensional measurements and functional interior shelving design.' },
+        { stepNumber: 2, title: 'Timber & Ply Selection', description: 'Selecting calibrated plywood, teak wood, and decorative laminates.' },
+        { stepNumber: 3, title: 'Precision Joinery & Assembly', description: 'Crafting sturdy joinery, edge-banding, and hardware mounting.' },
+        { stepNumber: 4, title: 'Buffing, Polishing & Installation', description: 'Finishing with premium PU/melamine polish and onsite fitment.' }
+      ]
+    },
+    {
+      _id: 's7',
+      title: 'Flooring, Tiles & False Ceiling',
+      icon: 'Grid',
+      category: 'Finishing & Ceilings',
+      description: 'Tile installation/repair, marble, granite, wooden/vinyl flooring, gypsum/POP/PVC ceilings and decorative lighting.',
+      benefits: [
+        'Laser-leveled Italian marble, granite & vitrified tiles',
+        'Water-resistant luxury vinyl & engineered wood flooring',
+        'Acoustic gypsum & moisture-resistant false ceilings',
+        'Concealed ambient cove lighting & magnetic track channels'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Subfloor & Ceiling Grid Prep', description: 'Laser leveling of substrate and heavy-duty GI ceiling suspension.' },
+        { stepNumber: 2, title: 'Tile & Board Installation', description: 'High-bond polymer adhesive tile setting and gypsum board fixing.' },
+        { stepNumber: 3, title: 'Grouting & Joint Finishing', description: 'Stain-resistant epoxy grouting and paper-taped seamless joints.' },
+        { stepNumber: 4, title: 'Diamond Polishing & Light Fixtures', description: 'Mirror polishing for natural stones and lighting installation.' }
+      ]
+    },
+    {
+      _id: 's8',
+      title: 'Doors, Windows & Glass',
+      icon: 'DoorClosed',
+      category: 'Openings & Glasswork',
+      description: 'Wooden, aluminium and UPVC doors/windows, sliding systems, glass work, mosquito mesh and repairs.',
+      benefits: [
+        'Sound-insulating UPVC & slim-profile thermal aluminium',
+        'Toughened safety glass partitions & shower enclosures',
+        'High-security multipoint locking systems',
+        'Smooth sliding mechanisms & retractable mosquito mesh'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Laser Aperture Measurement', description: 'Accurate mm-level measurements of all door and window openings.' },
+        { stepNumber: 2, title: 'Precision Fabrication', description: 'Factory fabrication with reinforced corners and weatherproof gaskets.' },
+        { stepNumber: 3, title: 'Anchor Fitting & Glazing', description: 'Secure fastener anchoring, glass insertion, and silicone perimeter sealing.' },
+        { stepNumber: 4, title: 'Hardware Tuning & Testing', description: 'Adjusting rollers, handles, locks, and acoustic seal check.' }
+      ]
+    },
+    {
+      _id: 's9',
+      title: 'Exterior & Outdoor Work',
+      icon: 'Trees',
+      category: 'Landscaping & Exterior',
+      description: 'Landscaping, gardens, paving, driveway, terrace, balcony, gates, grills, railings and exterior improvements.',
+      benefits: [
+        'Lush landscape design, manicured lawns & drip irrigation',
+        'Heavy-duty interlocking paver blocks & stone driveways',
+        'Designer MS/SS safety gates, CNC grills & glass railings',
+        'Terrace waterproofing, pergolas & vertical garden installations'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Landscape & Hardscape Planning', description: 'Site grading, drainage pathways, and aesthetic exterior layouts.' },
+        { stepNumber: 2, title: 'Paving, Gates & Structural Metalwork', description: 'Driveway stone laying, structural gate framing, and balcony railings.' },
+        { stepNumber: 3, title: 'Garden Planting & Automated Irrigation', description: 'Curated flora planting, soil enrichment, and drip irrigation.' },
+        { stepNumber: 4, title: 'Weatherproof Lighting & Sealing', description: 'Outdoor architectural lighting and weather-protective sealing.' }
+      ]
+    },
+    {
+      _id: 's10',
+      title: 'Home Repair & Maintenance',
+      icon: 'Wrench',
+      category: 'Maintenance & Repairs',
+      description: 'General repairs, appliance installation, pest control, cleaning, AC services, waterproofing and regular home maintenance.',
+      benefits: [
+        'Rapid-response doorstep technician visits',
+        'Certified experts for AC, appliance & electrical repairs',
+        'Eco-safe anti-termite & pest control treatments',
+        'Comprehensive Annual Maintenance Contract (AMC) options'
+      ],
+      process: [
+        { stepNumber: 1, title: 'Quick Diagnostic Booking', description: 'Fast slot scheduling with experienced service technicians.' },
+        { stepNumber: 2, title: 'Upfront Inspection & Estimate', description: 'Transparent assessment with zero hidden charges before work.' },
+        { stepNumber: 3, title: 'Professional Repair Execution', description: 'Use of authentic spares and industrial-grade repair equipment.' },
+        { stepNumber: 4, title: 'Quality Assurance & Service Warranty', description: 'Post-service performance check backed by our service guarantee.' }
+      ]
+    }
+  ];
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await api.get('/services');
-        const sorted = (res.data || []).sort((a, b) => a.title.localeCompare(b.title));
-        setServices(sorted);
+        const data = res.data || [];
+        if (data.length > 0) {
+          const sorted = data.sort((a, b) => a.title.localeCompare(b.title));
+          setServices(sorted);
+        } else {
+          setServices(fallbackServices);
+        }
       } catch (err) {
-        console.error('Error fetching services:', err);
+        console.error('Error fetching services (using fallback):', err);
+        setServices(fallbackServices);
       }
     };
     fetchServices();
@@ -306,49 +508,61 @@ const ServicesPage = () => {
             overflowY: 'auto',
             animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}>
-            {/* Image Header with Close Button */}
-            <div style={{ position: 'relative', height: '240px' }}>
-              <img 
-                src={selectedService.image} 
-                alt={selectedService.title} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%)'
-              }} />
-              
-              <button 
+            {/* Icon-based Header — replaces broken image */}
+            <div style={{
+              position: 'relative',
+              background: 'linear-gradient(135deg, var(--secondary-dark) 0%, var(--primary-dark) 100%)',
+              borderBottom: '1px solid var(--border-glass)',
+              padding: '40px 30px 30px 30px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {/* Close button */}
+              <button
                 onClick={() => setSelectedService(null)}
                 style={{
                   position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: 'rgba(0, 0, 0, 0.6)',
-                  color: '#fff',
+                  top: '16px',
+                  right: '16px',
+                  background: 'var(--border-glass)',
+                  color: 'var(--white)',
                   border: '1px solid var(--border-glass)',
-                  width: '40px',
-                  height: '40px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  zIndex: 2
+                  fontSize: '1.1rem',
+                  backdropFilter: 'blur(8px)'
                 }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
 
-              <div style={{ position: 'absolute', bottom: '20px', left: '30px', right: '30px' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  {selectedService.category}
-                </span>
-                <h2 style={{ fontSize: '1.8rem', color: '#fff', fontWeight: '800', marginTop: '5px' }}>
+              {/* Icon badge */}
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '14px',
+                background: 'rgba(212, 175, 55, 0.12)',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <ServiceIcon iconName={selectedService.icon} size={26} style={{ color: 'var(--accent-gold)' }} />
+              </div>
+
+              <div>
+                {selectedService.category && (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+                    {selectedService.category}
+                  </span>
+                )}
+                <h2 style={{ fontSize: '1.7rem', color: 'var(--white)', fontWeight: '800', marginTop: '6px', lineHeight: '1.2' }}>
                   {selectedService.title}
                 </h2>
               </div>
@@ -439,7 +653,7 @@ const ServicesPage = () => {
       )}
 
       {/* Booking Form Modal Overlay */}
-      {showBookingModal && (selectedService || activeService) && (
+      {showBookingModal && selectedService && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -473,7 +687,7 @@ const ServicesPage = () => {
 
             <h3 style={{ fontSize: '1.6rem', marginBottom: '10px', textAlign: 'center', color: 'var(--white)', fontWeight: '700' }}>Inquire for Service</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '25px', textAlign: 'center' }}>
-              Confirming a callback session for: <strong style={{ color: 'var(--accent-gold)' }}>{(selectedService || activeService).title}</strong>.
+              Confirming a callback session for: <strong style={{ color: 'var(--accent-gold)' }}>{selectedService.title}</strong>.
             </p>
 
             {formSuccess ? (

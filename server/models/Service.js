@@ -26,7 +26,8 @@ const ServiceSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: [true, 'Please add a service image'],
+    required: false,
+    default: '',
   },
   benefits: [
     {
