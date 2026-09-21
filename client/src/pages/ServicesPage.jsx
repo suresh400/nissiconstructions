@@ -479,35 +479,37 @@ const ServicesPage = () => {
         </div>
       </section>
 
-      {/* Modern Detailed Drawer Modal (Mobile Only) */}
-      {isMobile && selectedService && (
+      {/* Modern Detailed Modal */}
+      {selectedService && (
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 1000,
+          background: 'rgba(0, 0, 0, 0.72)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 100010,
           display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'stretch',
-          animation: 'fadeIn 0.3s ease'
-        }}>
-          <div style={{ flexGrow: 1 }} onClick={() => setSelectedService(null)} />
-          
+          justifyContent: 'center',
+          alignItems: isMobile ? 'flex-end' : 'center',
+          padding: isMobile ? '0' : '20px',
+          animation: 'fadeIn 0.25s ease'
+        }} onClick={() => setSelectedService(null)}>
           <div style={{
             width: '100%',
-            maxWidth: '680px',
+            maxWidth: isMobile ? '100%' : '650px',
+            maxHeight: isMobile ? '88vh' : '85vh',
             background: 'var(--card-glass)',
-            borderLeft: '1px solid var(--border-glass)',
-            boxShadow: '-10px 0 40px rgba(0,0,0,0.08)',
+            border: '1px solid var(--border-glass)',
+            borderRadius: isMobile ? '20px 20px 0 0' : '16px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
             display: 'flex',
             flexDirection: 'column',
             overflowY: 'auto',
-            animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}>
+            margin: '0 auto',
+            animation: isMobile ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'fadeIn 0.25s ease'
+          }} onClick={e => e.stopPropagation()}>
             {/* Icon-based Header — replaces broken image */}
             <div style={{
               position: 'relative',
@@ -662,13 +664,22 @@ const ServicesPage = () => {
           bottom: 0,
           background: 'rgba(0,0,0,0.4)',
           backdropFilter: 'blur(8px)',
-          zIndex: 1100,
+          zIndex: 100020,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isMobile ? 'flex-end' : 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: isMobile ? '0' : '20px'
         }}>
-          <div className="modal-content glass-card" style={{ padding: '40px', maxWidth: '500px', width: '100%', position: 'relative', background: 'var(--card-glass)' }}>
+          <div className="modal-content glass-card" style={{
+            padding: isMobile ? '24px 20px' : '40px',
+            maxWidth: '500px',
+            width: '100%',
+            position: 'relative',
+            background: 'var(--card-glass)',
+            borderRadius: isMobile ? '20px 20px 0 0' : '16px',
+            maxHeight: isMobile ? '90vh' : '90vh',
+            overflowY: 'auto'
+          }}>
             <button 
               className="modal-close" 
               onClick={() => setShowBookingModal(false)}

@@ -65,6 +65,18 @@ const HomePage = () => {
   const [contactLoading, setContactLoading] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
 
+  // Lock background scroll when modal is active
+  useEffect(() => {
+    if (selectedService || showBookingModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedService, showBookingModal]);
+
   // Core values
   const coreValues = [
     { icon: <Award size={32} />, title: 'Uncompromising Quality', desc: 'From concrete grades to premium teak woods, we select only RERA-approved grade materials.' },
@@ -562,130 +574,148 @@ const HomePage = () => {
 
       {/* ── 3. Services Section ── */}
       <section id="services" style={{
-        padding: `clamp(60px, 8vw, 100px) clamp(4%, 5%, 5%)`,
+        padding: `clamp(50px, 7vw, 90px) clamp(16px, 4vw, 5%)`,
         background: 'var(--primary-dark)',
-        borderTop: '1px solid var(--border-glass)'
+        borderTop: '1px solid var(--border-glass)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         <div className="container">
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '60px' }}>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '50px' }}>
             <span className="section-tag" style={{ color: 'var(--accent-gold)' }}>Expertise Directory</span>
             <h2 className="section-title">Our Construction Services</h2>
-            <p className="section-subtitle" style={{ maxWidth: '600px', margin: '15px auto 0 auto' }}>
-              {isMobile
-                ? 'Tap any service name below to view workflow details and book consultations.'
-                : 'Hover over any service name below to view builder expertise, benefits, and details.'}
+            <p className="section-subtitle" style={{ maxWidth: '620px', margin: '15px auto 0 auto' }}>
+              Explore our turnkey services from reinforced civil construction to luxury interior makeovers. Tap any service to inspect workflow & book a consultation.
             </p>
           </div>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: servicesGridCols,
-            gap: '16px',
-            alignItems: 'start'
+            gridTemplateColumns: isPhone ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+            gap: isPhone ? '16px' : '24px',
+            alignItems: 'stretch'
           }}>
-            {services.map(service => {
-              const isHovered = hoveredService === service._id;
-              return (
-                <div
-                  key={service._id}
-                  style={{ position: 'relative', height: '62px' }}
-                  onMouseEnter={() => { if (!isMobile) setHoveredService(service._id); }}
-                  onMouseLeave={() => { if (!isMobile) setHoveredService(null); }}
-                >
-                  <div
-                    onClick={() => {
-                      if (isMobile) {
-                        setSelectedService(service);
-                        setBookingSuccess(false);
-                      }
+            {services.map(service => (
+              <div
+                key={service._id}
+                onClick={() => {
+                  setSelectedService(service);
+                  setBookingSuccess(false);
+                }}
+                className="glass-card"
+                style={{
+                  background: 'var(--card-glass)',
+                  borderRadius: '16px',
+                  padding: isPhone ? '20px' : '28px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  border: '1px solid var(--border-glass)',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{
+                    width: isPhone ? '44px' : '52px',
+                    height: isPhone ? '44px' : '52px',
+                    borderRadius: '12px',
+                    background: 'rgba(212, 175, 55, 0.1)',
+                    border: '1px solid rgba(212, 175, 55, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--accent-gold)'
+                  }}>
+                    <ServiceIcon iconName={service.icon} size={isPhone ? 22 : 26} />
+                  </div>
+                  {service.category && (
+                    <span style={{
+                      fontSize: '0.68rem',
+                      color: 'var(--accent-gold)',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      background: 'rgba(212, 175, 55, 0.08)',
+                      padding: '4px 10px',
+                      borderRadius: '20px'
+                    }}>
+                      {service.category}
+                    </span>
+                  )}
+                </div>
+
+                <h3 style={{
+                  fontSize: isPhone ? '1.15rem' : '1.3rem',
+                  fontWeight: '700',
+                  marginBottom: '10px',
+                  color: 'var(--white)'
+                }}>
+                  {service.title}
+                </h3>
+
+                <p style={{
+                  color: 'var(--text-muted)',
+                  fontSize: isPhone ? '0.88rem' : '0.92rem',
+                  lineHeight: '1.6',
+                  marginBottom: '20px',
+                  flexGrow: 1
+                }}>
+                  {service.description}
+                </p>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: '16px',
+                  borderTop: '1px solid var(--border-glass)',
+                  marginTop: 'auto'
+                }}>
+                  <span style={{
+                    fontSize: '0.84rem',
+                    fontWeight: '600',
+                    color: 'var(--accent-gold)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    View Details <ArrowUpRight size={14} />
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedService(service);
+                      setShowBookingModal(true);
+                      setBookingSuccess(false);
                     }}
                     style={{
-                      position: 'absolute',
-                      top: 0, left: 0, right: 0,
-                      padding: '18px 20px',
-                      borderRadius: '12px',
-                      border: `1px solid ${isHovered ? 'var(--accent-gold)' : 'var(--border-glass)'}`,
-                      background: isHovered ? 'var(--secondary-dark)' : 'var(--primary-dark)',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                      boxShadow: isHovered ? '0 15px 35px rgba(0,0,0,0.15), 0 0 20px rgba(212,175,55,0.1)' : 'none',
-                      zIndex: isHovered ? 100 : 1,
-                      overflow: 'hidden',
-                      maxHeight: isHovered ? '600px' : '62px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      touchAction: 'manipulation',
+                      background: 'transparent',
+                      border: '1px solid var(--border-glass)',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      color: 'var(--white)',
+                      cursor: 'pointer'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '24px' }}>
-                      <span style={{
-                        fontWeight: isHovered ? '600' : '400',
-                        color: isHovered ? 'var(--accent-gold)' : 'var(--text-light)',
-                        fontSize: isPhone ? '0.9rem' : '0.98rem',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        flex: 1
-                      }}>
-                        {service.title}
-                      </span>
-                      <ChevronDown size={16} style={{
-                        color: isHovered ? 'var(--accent-gold)' : 'var(--text-muted)',
-                        transform: isHovered ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.3s ease',
-                        flexShrink: 0,
-                        marginLeft: '8px'
-                      }} />
-                    </div>
-
-                    {isHovered && (
-                      <div style={{ marginTop: '15px', animation: 'fadeIn 0.2s ease-out', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', lineHeight: '1.4', margin: 0, opacity: 0.9 }}>
-                          {service.description}
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-glass)', paddingTop: '10px' }}>
-                          <Phone size={12} style={{ color: 'var(--accent-gold)' }} />
-                          <span>{t('Direct Support')}: <strong style={{ color: 'var(--white)' }}>+91 87904 20585</strong></span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button
-                            onClick={e => {
-                              e.stopPropagation();
-                              setSelectedService(service);
-                              setShowBookingModal(true);
-                              setBookingSuccess(false);
-                            }}
-                            className="btn btn-primary"
-                            style={{ padding: '8px 12px', fontSize: '0.75rem', flex: 1, fontWeight: '600' }}
-                          >
-                            {t('Book Call')}
-                          </button>
-                          <a
-                            href={`https://wa.me/917601078843?text=Hello%20Nissi%20Constructions,%20I%20am%20interested%20in%20your%20${encodeURIComponent(service.title)}%20services.`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn btn-secondary"
-                            style={{ padding: '8px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', textDecoration: 'none', fontWeight: '600' }}
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {t('WhatsApp')} <ArrowUpRight size={12} />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    Book Call
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── 4. Contact Section ── */}
       <section id="contact" style={{
-        padding: `clamp(60px, 8vw, 100px) clamp(4%, 5%, 5%)`,
+        padding: `clamp(50px, 7vw, 90px) clamp(16px, 4vw, 5%)`,
         background: 'var(--secondary-dark)',
-        borderTop: '1px solid var(--border-glass)'
+        borderTop: '1px solid var(--border-glass)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         <div className="container">
           <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '60px' }}>
@@ -762,140 +792,160 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── Mobile Service Drawer (bottom sheet on phone, side panel on tablet) ── */}
-      {isMobile && selectedService && (
+      {/* ── Professional Service Details Modal (Centered, zIndex 100010 above navbar, never pushed right) ── */}
+      {selectedService && (
         <div
           style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(6px)',
-            zIndex: 2000,
+            background: 'rgba(0, 0, 0, 0.72)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 100010,
             display: 'flex',
-            flexDirection: isPhone ? 'column' : 'row',
-            justifyContent: isPhone ? 'flex-end' : 'flex-end',
-            alignItems: isPhone ? 'stretch' : 'stretch',
+            alignItems: isPhone ? 'flex-end' : 'center',
+            justifyContent: 'center',
+            padding: isPhone ? '0' : '20px',
+            animation: 'fadeIn 0.25s ease'
           }}
           onClick={() => setSelectedService(null)}
         >
           <div
             style={{
               background: 'var(--card-glass)',
-              borderTop: isPhone ? '1px solid var(--border-glass)' : 'none',
-              borderLeft: isPhone ? 'none' : '1px solid var(--border-glass)',
-              boxShadow: isPhone ? '0 -10px 40px rgba(0,0,0,0.15)' : '-10px 0 40px rgba(0,0,0,0.1)',
+              border: '1px solid var(--border-glass)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.35), 0 0 30px rgba(212, 175, 55, 0.1)',
               display: 'flex',
               flexDirection: 'column',
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              animation: isPhone ? 'slideInUp 0.35s cubic-bezier(0.16,1,0.3,1)' : 'slideInRight 0.35s cubic-bezier(0.16,1,0.3,1)',
-              /* Phone: full width bottom sheet, up to 90vh */
-              width: isPhone ? '100%' : 'min(100%, 420px)',
-              maxHeight: isPhone ? '92vh' : '100%',
-              borderRadius: isPhone ? '20px 20px 0 0' : '0',
+              width: isPhone ? '100%' : 'min(92vw, 640px)',
+              maxHeight: isPhone ? '88vh' : '86vh',
+              borderRadius: isPhone ? '22px 22px 0 0' : '18px',
+              animation: isPhone ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'fadeIn 0.25s ease',
+              margin: '0 auto',
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Modal Header */}
             <div style={{
-              position: 'relative',
-              background: 'linear-gradient(135deg, var(--secondary-dark) 0%, var(--primary-dark) 100%)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'var(--card-glass)',
+              backdropFilter: 'blur(16px)',
               borderBottom: '1px solid var(--border-glass)',
-              padding: isPhone ? '24px 20px 20px' : '36px 28px 24px',
+              padding: isPhone ? '16px 20px' : '24px 28px',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
             }}>
-              {/* Drag pill on phone */}
-              {isPhone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                  width: '36px', height: '4px', borderRadius: '2px',
-                  background: 'var(--border-glass)', margin: '-8px auto 4px auto'
-                }} />
-              )}
+                  width: isPhone ? '40px' : '48px',
+                  height: isPhone ? '40px' : '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(212, 175, 55, 0.12)',
+                  border: '1px solid rgba(212, 175, 55, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent-gold)',
+                  flexShrink: 0
+                }}>
+                  <ServiceIcon iconName={selectedService.icon} size={isPhone ? 20 : 24} />
+                </div>
+                <div>
+                  {selectedService.category && (
+                    <span style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.5px', display: 'block' }}>
+                      {selectedService.category}
+                    </span>
+                  )}
+                  <h3 style={{ fontSize: isPhone ? '1.15rem' : '1.4rem', color: 'var(--white)', fontWeight: '700', margin: 0, lineHeight: '1.2' }}>
+                    {selectedService.title}
+                  </h3>
+                </div>
+              </div>
 
+              {/* Close Button */}
               <button
                 onClick={() => setSelectedService(null)}
+                aria-label="Close details"
                 style={{
-                  position: 'absolute', top: '14px', right: '14px',
-                  background: 'rgba(0,0,0,0.12)', color: 'var(--white)',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid var(--border-glass)',
-                  width: '34px', height: '34px', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer'
+                  color: 'var(--white)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <X size={16} />
+                <X size={18} />
               </button>
-
-              <div style={{
-                width: '50px', height: '50px', borderRadius: '12px',
-                background: 'rgba(212,175,55,0.12)',
-                border: '1px solid rgba(212,175,55,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <ServiceIcon iconName={selectedService.icon} size={24} style={{ color: 'var(--accent-gold)' }} />
-              </div>
-
-              <div>
-                {selectedService.category && (
-                  <span style={{ fontSize: '0.68rem', color: 'var(--accent-gold)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                    {selectedService.category}
-                  </span>
-                )}
-                <h2 style={{ fontSize: isPhone ? '1.45rem' : '1.7rem', color: 'var(--white)', fontWeight: '800', marginTop: '4px', lineHeight: '1.2' }}>
-                  {selectedService.title}
-                </h2>
-              </div>
             </div>
 
-            {/* Content Body */}
-            <div style={{ padding: isPhone ? '20px' : '28px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+            {/* Modal Body */}
+            <div style={{ padding: isPhone ? '20px' : '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
               <div>
-                <p style={{ color: 'var(--text-light)', fontSize: isPhone ? '0.95rem' : '1.02rem', lineHeight: '1.7', margin: 0 }}>
+                <p style={{ color: 'var(--text-light)', fontSize: isPhone ? '0.92rem' : '1rem', lineHeight: '1.7', margin: 0 }}>
                   {selectedService.description}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+
+                {/* CTA Buttons */}
+                <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '10px', marginTop: '18px' }}>
                   <button
                     onClick={() => { setShowBookingModal(true); setBookingSuccess(false); }}
                     className="btn btn-primary"
-                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}
+                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', fontSize: '0.88rem' }}
                   >
-                    {t('Request Consultation')} <PhoneCall size={16} />
+                    {t('Book Consultation')} <PhoneCall size={16} />
                   </button>
                   <a
-                    href={`https://wa.me/917601078843?text=Hello,%20I%20am%20interested%20in%20your%20${encodeURIComponent(selectedService.title)}%20services.`}
+                    href={`https://wa.me/917601078843?text=Hello%20Nissi%20Constructions,%20I%20am%20interested%20in%20your%20${encodeURIComponent(selectedService.title)}%20services.`}
                     target="_blank" rel="noreferrer"
                     className="btn btn-secondary"
-                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', textDecoration: 'none' }}
+                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', textDecoration: 'none', fontSize: '0.88rem' }}
                   >
                     {t('Chat via WhatsApp')} <ArrowUpRight size={16} />
                   </a>
                 </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '14px' }}>
+                  <Phone size={13} style={{ color: 'var(--accent-gold)' }} />
+                  <span>{t('Direct Support Helpline')}: <strong style={{ color: 'var(--white)' }}>+91 87904 20585</strong></span>
+                </div>
               </div>
 
+              {/* Key Benefits */}
               {selectedService.benefits?.length > 0 && (
                 <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '18px' }}>
-                  <h3 style={{ fontSize: '1.05rem', color: 'var(--accent-gold)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                  <h4 style={{ fontSize: '0.98rem', color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
                     <FileCheck2 size={16} /> Key Benefits & Standards
-                  </h3>
+                  </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {selectedService.benefits.map((benefit, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                         <CheckCircle2 size={14} style={{ color: 'var(--accent-gold)', marginTop: '3px', flexShrink: 0 }} />
-                        <span style={{ fontSize: isPhone ? '0.88rem' : '0.92rem', color: 'var(--text-muted)' }}>{benefit}</span>
+                        <span style={{ fontSize: isPhone ? '0.86rem' : '0.9rem', color: 'var(--text-muted)' }}>{benefit}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* Process Workflow */}
               {selectedService.process?.length > 0 && (
                 <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '18px' }}>
-                  <h3 style={{ fontSize: '1.05rem', color: 'var(--accent-gold)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                  <h4 style={{ fontSize: '0.98rem', color: 'var(--accent-gold)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
                     <HelpCircle size={16} /> Execution Workflow
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {selectedService.process.map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '12px' }}>
                         <div style={{
@@ -907,7 +957,7 @@ const HomePage = () => {
                           {step.stepNumber || idx + 1}
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '0.9rem', color: 'var(--white)', fontWeight: '600', marginBottom: '2px' }}>{step.title}</h4>
+                          <h5 style={{ fontSize: '0.88rem', color: 'var(--white)', fontWeight: '600', marginBottom: '2px' }}>{step.title}</h5>
                           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', lineHeight: '1.5', margin: 0 }}>{step.description}</p>
                         </div>
                       </div>
@@ -920,18 +970,19 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* ── Booking Modal ── */}
+      {/* ── Booking Modal (zIndex 100020 on top of everything, centered, never pushed right) ── */}
       {showBookingModal && (selectedService || services.find(s => s._id === hoveredService)) && (
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 3000,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 100020,
           display: 'flex',
           alignItems: isPhone ? 'flex-end' : 'center',
           justifyContent: 'center',
-          padding: isPhone ? '0' : '20px'
+          padding: isPhone ? '0' : '20px',
+          animation: 'fadeIn 0.25s ease'
         }}>
           <div style={{
             background: 'var(--card-glass)',
@@ -939,29 +990,26 @@ const HomePage = () => {
             borderRadius: isPhone ? '20px 20px 0 0' : '16px',
             width: '100%',
             maxWidth: isPhone ? '100%' : '500px',
-            maxHeight: isPhone ? '92vh' : '90vh',
+            maxHeight: isPhone ? '90vh' : '90vh',
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
-            padding: isPhone ? '24px 20px' : '40px',
+            padding: isPhone ? '24px 20px' : '36px',
             position: 'relative',
+            margin: '0 auto',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
             animation: isPhone ? 'slideInUp 0.3s cubic-bezier(0.16,1,0.3,1)' : 'fadeIn 0.25s ease'
           }}>
-            {/* Drag pill on phone */}
-            {isPhone && (
-              <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'var(--border-glass)', margin: '-8px auto 16px auto' }} />
-            )}
-
             <button
               onClick={() => setShowBookingModal(false)}
               style={{
                 position: 'absolute', top: '16px', right: '16px',
-                background: 'none', border: 'none',
+                background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-glass)',
                 color: 'var(--text-muted)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '6px', borderRadius: '50'
+                width: '32px', height: '32px', borderRadius: '50%'
               }}
             >
-              <X size={20} />
+              <X size={18} />
             </button>
 
             <h3 style={{ fontSize: isPhone ? '1.3rem' : '1.6rem', marginBottom: '8px', textAlign: 'center', color: 'var(--white)', fontWeight: '700' }}>
