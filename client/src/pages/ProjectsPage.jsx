@@ -92,8 +92,8 @@ const ProjectsPage = () => {
           {/* Projects grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: '30px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))',
+            gap: '25px'
           }}>
             {filteredProjects.map(project => (
               <div key={project._id} className="glass-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -161,7 +161,7 @@ const ProjectsPage = () => {
       {/* Project Details Modal */}
       {selectedProject && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card" style={{ maxWidth: '700px', padding: '40px' }}>
+          <div className="modal-content glass-card" style={{ maxWidth: '700px', padding: 'clamp(20px, 4vw, 40px)', width: 'min(92vw, 700px)' }}>
             <button className="modal-close" onClick={() => setSelectedProject(null)}>
               <X size={20} />
             </button>
@@ -180,12 +180,12 @@ const ProjectsPage = () => {
               {selectedProject.categories.join(' | ')}
             </span>
 
-            <h3 style={{ fontSize: '2rem', marginBottom: '5px' }}>{selectedProject.title}</h3>
+            <h3 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', marginBottom: '5px' }}>{selectedProject.title}</h3>
             <p style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <MapPin size={16} /> {selectedProject.location}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--secondary-dark)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '20px', marginBottom: '25px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', background: 'var(--secondary-dark)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '15px 20px', marginBottom: '25px' }}>
               <div>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>Project Cost / Budget Range</span>
                 <span style={{ fontSize: '1.15rem', color: 'var(--white)', fontWeight: 'bold' }}>{selectedProject.costRange}</span>

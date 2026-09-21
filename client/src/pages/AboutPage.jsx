@@ -2,6 +2,18 @@ import React from 'react';
 import { Target, Compass, Sparkles, Award, Shield, Hourglass, CheckCircle2 } from 'lucide-react';
 
 const AboutPage = () => {
+  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth <= 768);
+  const [isPhone, setIsPhone] = React.useState(() => window.innerWidth <= 480);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsPhone(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const coreValues = [
     { icon: <Award size={36} />, title: 'Uncompromising Quality', desc: 'From concrete grades to premium teak woods, we select only RERA-approved grade materials.' },
     { icon: <Shield size={36} />, title: 'Absolue Transparency', desc: 'No hidden bills. We share live digital spreadsheets detailing procurement and contractor payouts.' },
@@ -17,36 +29,36 @@ const AboutPage = () => {
   ];
 
   return (
-    <div style={{ paddingTop: '80px' }}>
+    <div style={{ paddingTop: isPhone ? '60px' : '80px', overflowX: 'hidden' }}>
       {/* Page Header banner */}
       <section className="section" style={{
         background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)',
         textAlign: 'center',
-        padding: '80px 5%'
+        padding: isPhone ? '50px 5% 40px 5%' : '80px 5%'
       }}>
         <div className="container">
           <span className="section-tag">Corporate Profile</span>
-          <h1 style={{ fontSize: '3rem', marginBottom: '15px' }}>About Nissi Constructions</h1>
-          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: isPhone ? '2.1rem' : '3rem', marginBottom: '15px' }}>About Nissi Constructions</h1>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto', fontSize: isPhone ? '0.92rem' : '1rem' }}>
             A forward-thinking construction and property marketplace firm redefining luxury building standards in India.
           </p>
         </div>
       </section>
 
       {/* Corporate Story */}
-      <section className="section">
+      <section className="section" style={{ padding: isPhone ? '40px 0' : '80px 0' }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '50px',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: isPhone ? '30px' : '50px',
           alignItems: 'center'
         }}>
           <div>
-            <h2 style={{ fontSize: '2.2rem', marginBottom: '20px' }}>Building Landmarks with Structural Integrity</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7' }}>
+            <h2 style={{ fontSize: isPhone ? '1.6rem' : '2.2rem', marginBottom: '20px' }}>Building Landmarks with Structural Integrity</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7', fontSize: isPhone ? '0.92rem' : '1rem' }}>
               Nissi Constructions was established with a singular focus: to close the trust gap in the private residential sector. Over the years, we have scaled our operations from private custom homes to multi-story commercial properties and gated villa societies.
             </p>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7' }}>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7', fontSize: isPhone ? '0.92rem' : '1rem' }}>
               We employ dedicated skilled construction workers, modular carpenters, and plumbing supervisors to execute tasks without outsourcing to sub-standard contractors.
             </p>
           </div>
@@ -66,11 +78,11 @@ const AboutPage = () => {
       </section>
 
       {/* Vision & Mission */}
-      <section className="section" style={{ background: '#fafafa' }}>
+      <section className="section" style={{ background: '#fafafa', padding: isPhone ? '40px 0' : '80px 0' }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '40px'
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: isPhone ? '20px' : '40px'
         }}>
           <div className="glass-card" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
             <div style={{ background: 'rgba(212,175,55,0.1)', padding: '15px', borderRadius: '12px', color: 'var(--accent-gold)' }}>
@@ -141,48 +153,52 @@ const AboutPage = () => {
             padding: '20px 0'
           }}>
             {/* Timeline center line */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: '50%',
-              width: '2px',
-              background: 'var(--border-glass)',
-              transform: 'translateX(-50%)',
-            }} className="desktop-only"></div>
+            {!isMobile && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: '50%',
+                width: '2px',
+                background: 'var(--border-glass)',
+                transform: 'translateX(-50%)',
+              }} className="desktop-only"></div>
+            )}
 
             {timelineSteps.map((step, idx) => (
               <div key={idx} style={{
                 display: 'flex',
-                justifyContent: idx % 2 === 0 ? 'flex-start' : 'flex-end',
-                marginBottom: '40px',
+                justifyContent: isMobile ? 'flex-start' : (idx % 2 === 0 ? 'flex-start' : 'flex-end'),
+                marginBottom: isPhone ? '25px' : '40px',
                 position: 'relative',
                 width: '100%'
               }} className="timeline-row">
                 
                 {/* Center dot */}
-                <div style={{
-                  position: 'absolute',
-                  top: '25px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  background: 'var(--accent-gold)',
-                  border: '4px solid var(--primary-dark)',
-                  zIndex: 2,
-                  boxShadow: '0 0 10px var(--accent-gold)'
-                }} className="desktop-only"></div>
+                {!isMobile && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '25px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: 'var(--accent-gold)',
+                    border: '4px solid var(--primary-dark)',
+                    zIndex: 2,
+                    boxShadow: '0 0 10px var(--accent-gold)'
+                  }} className="desktop-only"></div>
+                )}
 
                 <div className="glass-card timeline-card" style={{
-                  width: '45%',
-                  padding: '25px',
+                  width: isMobile ? '100%' : '45%',
+                  padding: isPhone ? '18px 20px' : '25px',
                   borderLeft: '4px solid var(--accent-gold)',
                 }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>{step.year}</span>
-                  <h3 style={{ fontSize: '1.25rem', margin: '5px 0 10px 0' }}>{step.title}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{step.desc}</p>
+                  <h3 style={{ fontSize: isPhone ? '1.1rem' : '1.25rem', margin: '5px 0 10px 0' }}>{step.title}</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: isPhone ? '0.86rem' : '0.9rem', lineHeight: '1.6' }}>{step.desc}</p>
                 </div>
               </div>
             ))}

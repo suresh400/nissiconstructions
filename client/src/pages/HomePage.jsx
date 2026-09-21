@@ -23,13 +23,29 @@ const ServiceIcon = ({ iconName, size = 28, className, style }) => {
   return <IconComponent size={size} className={className} style={style} />;
 };
 
+/* ── Responsive hook: tracks phone / tablet / desktop ── */
+const useBreakpoint = () => {
+  const getBreakpoint = () => {
+    const w = window.innerWidth;
+    return { isPhone: w <= 480, isTablet: w > 480 && w <= 768, isMobile: w <= 768, isDesktop: w > 768 };
+  };
+  const [bp, setBp] = useState(getBreakpoint);
+  useEffect(() => {
+    const onResize = () => setBp(getBreakpoint());
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return bp;
+};
+
 const HomePage = () => {
   const { t } = useLanguage();
+  const { isPhone, isTablet, isMobile } = useBreakpoint();
+
   // Services state
   const [services, setServices] = useState([]);
   const [hoveredService, setHoveredService] = useState(null);
-  const [selectedService, setSelectedService] = useState(null); // mobile drawer
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [selectedService, setSelectedService] = useState(null);
 
   // General Booking Form state
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -49,15 +65,14 @@ const HomePage = () => {
   const [contactLoading, setContactLoading] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
 
-  // Corporate core values list
+  // Core values
   const coreValues = [
-    { icon: <Award size={36} />, title: 'Uncompromising Quality', desc: 'From concrete grades to premium teak woods, we select only RERA-approved grade materials.' },
-    { icon: <Shield size={36} />, title: 'Absolute Transparency', desc: 'No hidden bills. We share live digital spreadsheets detailing procurement and contractor payouts.' },
-    { icon: <Compass size={36} />, title: 'Vastu Excellence', desc: 'Our architectural design templates are 100% compliant with ancient Vastu science standards.' },
-    { icon: <Sparkles size={36} />, title: 'Luxury Innovation', desc: 'Specialists in modern architectural profiles, glass facades, and automated home smart rigs.' },
+    { icon: <Award size={32} />, title: 'Uncompromising Quality', desc: 'From concrete grades to premium teak woods, we select only RERA-approved grade materials.' },
+    { icon: <Shield size={32} />, title: 'Absolute Transparency', desc: 'No hidden bills. We share live digital spreadsheets detailing procurement and contractor payouts.' },
+    { icon: <Compass size={32} />, title: 'Vastu Excellence', desc: 'Our architectural design templates are 100% compliant with ancient Vastu science standards.' },
+    { icon: <Sparkles size={32} />, title: 'Luxury Innovation', desc: 'Specialists in modern architectural profiles, glass facades, and automated home smart rigs.' },
   ];
 
-  // 10 Core Services requested by client
   const fallbackServices = [
     {
       _id: 's1',
@@ -257,21 +272,15 @@ const HomePage = () => {
         const res = await api.get('/services');
         const data = res.data || [];
         if (data.length > 0) {
-          const sorted = data.sort((a, b) => a.title.localeCompare(b.title));
-          setServices(sorted);
+          setServices(data.sort((a, b) => a.title.localeCompare(b.title)));
         } else {
           setServices(fallbackServices);
         }
-      } catch (err) {
-        console.error('Error fetching services (using fallback):', err);
+      } catch {
         setServices(fallbackServices);
       }
     };
     fetchServices();
-
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleBookingSubmit = async (e) => {
@@ -279,10 +288,7 @@ const HomePage = () => {
     setBookingLoading(true);
     const serviceToBook = selectedService || services.find(s => s._id === hoveredService);
     if (!serviceToBook) return;
-
     try {
-      // 1. Submit booking details to local DB via API
-      console.log('[Booking Submit] Sending to database...');
       await api.post('/consultations', {
         name: bookingName,
         email: bookingEmail,
@@ -291,29 +297,17 @@ const HomePage = () => {
         message: bookingMessage || `Client requested consultation for service: ${serviceToBook.title}`,
         type: 'booking',
       });
-      console.log('[Booking Submit] Saved in DB successfully!');
-
-      // 2. Trigger EmailJS notification (optional, will not block if fails)
       try {
         await sendEmailNotification({
-          name: bookingName,
-          email: bookingEmail,
-          phone: bookingPhone,
+          name: bookingName, email: bookingEmail, phone: bookingPhone,
           serviceType: serviceToBook.title,
           message: bookingMessage || `Client requested consultation for service: ${serviceToBook.title}`,
           type: 'booking'
         });
-      } catch (emailErr) {
-        console.error('[Booking Submit] EmailJS error (non-blocking):', emailErr);
-      }
-
+      } catch {}
       setBookingSuccess(true);
-      setBookingName('');
-      setBookingEmail('');
-      setBookingPhone('');
-      setBookingMessage('');
+      setBookingName(''); setBookingEmail(''); setBookingPhone(''); setBookingMessage('');
     } catch (err) {
-      console.error('[Booking Submit] Connection/Server error:', err);
       alert(`Consultation request failed: ${err.message || 'Please try again.'}`);
     } finally {
       setBookingLoading(false);
@@ -324,132 +318,130 @@ const HomePage = () => {
     e.preventDefault();
     setContactLoading(true);
     try {
-      // 1. Submit contact details to local DB via API
-      console.log('[Contact Submit] Sending to database...');
       await api.post('/consultations', {
-        name: contactName,
-        email: contactEmail,
-        phone: contactPhone,
-        serviceType: contactServiceType,
-        message: contactMessage,
-        type: 'callback'
+        name: contactName, email: contactEmail, phone: contactPhone,
+        serviceType: contactServiceType, message: contactMessage, type: 'callback'
       });
-      console.log('[Contact Submit] Saved in DB successfully!');
-
-      // 2. Trigger EmailJS notification (optional, will not block if fails)
       try {
         await sendEmailNotification({
-          name: contactName,
-          email: contactEmail,
-          phone: contactPhone,
-          serviceType: contactServiceType,
-          message: contactMessage,
-          type: 'callback'
+          name: contactName, email: contactEmail, phone: contactPhone,
+          serviceType: contactServiceType, message: contactMessage, type: 'callback'
         });
-      } catch (emailErr) {
-        console.error('[Contact Submit] EmailJS error (non-blocking):', emailErr);
-      }
-
+      } catch {}
       setContactSuccess(true);
-      setContactName('');
-      setContactEmail('');
-      setContactPhone('');
-      setContactMessage('');
+      setContactName(''); setContactEmail(''); setContactPhone(''); setContactMessage('');
     } catch (err) {
-      console.error('[Contact Submit] Connection/Server error:', err);
       alert(`Failed to send message: ${err.message || 'Please try again.'}`);
     } finally {
       setContactLoading(false);
     }
   };
 
-  return (
-    <div style={{ background: 'var(--primary-dark)', color: 'var(--text-light)', minHeight: '100vh', fontFamily: 'var(--font-body)' }}>
+  /* ── Derived layout values ── */
+  const heroPaddingTop = isPhone ? '100px' : isTablet ? '120px' : '160px';
+  const heroPaddingBottom = isPhone ? '50px' : '80px';
+  const heroH1Size = isPhone ? 'clamp(1.9rem, 8vw, 2.4rem)' : isTablet ? '2.6rem' : '3.6rem';
+  const heroImgHeight = isPhone ? '220px' : isTablet ? '320px' : '480px';
 
-      {/* 1. Hero Section */}
+  /* Services grid: 1 col phone, 2 col tablet, 3 col desktop */
+  const servicesGridCols = isPhone ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+
+  /* About grid */
+  const aboutGridCols = isMobile ? '1fr' : '1.1fr 0.9fr';
+
+  /* Contact form grid */
+  const formGridCols = isPhone ? '1fr' : '1fr 1fr';
+
+  return (
+    <div style={{ background: 'var(--primary-dark)', color: 'var(--text-light)', minHeight: '100vh', fontFamily: 'var(--font-body)', overflowX: 'hidden' }}>
+
+      {/* ── 1. Hero Section ── */}
       <section id="home" style={{
-        paddingTop: '160px',
-        paddingBottom: '80px',
-        paddingLeft: '5%',
-        paddingRight: '5%',
+        paddingTop: heroPaddingTop,
+        paddingBottom: heroPaddingBottom,
+        paddingLeft: 'clamp(4%, 5%, 5%)',
+        paddingRight: 'clamp(4%, 5%, 5%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        textAlign: 'center'
+        textAlign: 'center',
       }}>
-        <div style={{ maxWidth: '800px' }}>
+        <div style={{ maxWidth: '800px', width: '100%' }}>
           <span style={{
-            fontSize: '0.85rem',
+            fontSize: isPhone ? '0.72rem' : '0.85rem',
             fontWeight: '700',
             textTransform: 'uppercase',
-            letterSpacing: '3px',
+            letterSpacing: isPhone ? '2px' : '3px',
             color: 'var(--accent-gold)',
-            marginBottom: '20px',
+            marginBottom: '16px',
             display: 'block'
           }}>
             Nissi Constructions
           </span>
           <h1 style={{
             fontFamily: 'var(--font-heading)',
-            fontSize: '3.6rem',
+            fontSize: heroH1Size,
             lineHeight: '1.2',
             color: 'var(--white)',
             fontWeight: '700',
-            marginBottom: '25px',
+            marginBottom: isPhone ? '18px' : '25px',
             letterSpacing: '-0.5px'
           }}>
             We build spaces that endure.
           </h1>
           <p style={{
             color: 'var(--text-muted)',
-            fontSize: '1.15rem',
+            fontSize: isPhone ? '0.95rem' : '1.1rem',
             lineHeight: '1.7',
-            maxWidth: '650px',
-            margin: '0 auto 40px auto'
+            maxWidth: '620px',
+            margin: `0 auto ${isPhone ? '28px' : '40px'} auto`
           }}>
             Premium residential and commercial developments built with absolute structural integrity and financial transparency.
           </p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex',
+            gap: isPhone ? '10px' : '15px',
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
             <button
-              onClick={() => {
-                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
               style={{
                 background: 'var(--white)',
                 color: 'var(--black)',
                 border: '1px solid var(--white)',
-                padding: '14px 30px',
+                padding: isPhone ? '11px 20px' : '14px 30px',
                 borderRadius: '6px',
-                fontSize: '0.95rem',
+                fontSize: isPhone ? '0.88rem' : '0.95rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--gold-hover)'; e.currentTarget.style.borderColor = 'var(--gold-hover)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--white)'; e.currentTarget.style.borderColor = 'var(--white)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold-hover)'; e.currentTarget.style.borderColor = 'var(--gold-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--white)'; e.currentTarget.style.borderColor = 'var(--white)'; }}
             >
               Book Free Consultation
             </button>
             <button
-              onClick={() => {
-                document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
               style={{
                 background: 'transparent',
                 color: 'var(--text-light)',
                 border: '1px solid var(--border-glass)',
-                padding: '14px 30px',
+                padding: isPhone ? '11px 20px' : '14px 30px',
                 borderRadius: '6px',
-                fontSize: '0.95rem',
+                fontSize: isPhone ? '0.88rem' : '0.95rem',
                 fontWeight: '600',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-glass)'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-glass)'; }}
             >
               Explore Services <ArrowUpRight size={16} />
             </button>
@@ -457,12 +449,12 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Hero Image Block */}
-      <section style={{ padding: '0 5% 80px 5%' }}>
+      {/* ── Hero Image Block ── */}
+      <section style={{ padding: isPhone ? '0 4% 50px 4%' : '0 5% 80px 5%' }}>
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
-          borderRadius: '16px',
+          borderRadius: isPhone ? '10px' : '16px',
           overflow: 'hidden',
           boxShadow: '0 20px 40px rgba(0,0,0,0.06)',
           border: '1px solid var(--border-glass)'
@@ -470,28 +462,39 @@ const HomePage = () => {
           <img
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85"
             alt="Luxury Minimalist Villa"
-            style={{ width: '100%', height: '480px', objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', height: heroImgHeight, objectFit: 'cover', display: 'block' }}
           />
         </div>
       </section>
 
-      {/* 2. About Section */}
-      <section id="about" style={{ padding: '100px 5%', borderTop: '1px solid var(--border-glass)', background: 'var(--secondary-dark)' }}>
+      {/* ── 2. About Section ── */}
+      <section id="about" style={{
+        padding: `clamp(60px, 8vw, 100px) clamp(4%, 5%, 5%)`,
+        borderTop: '1px solid var(--border-glass)',
+        background: 'var(--secondary-dark)'
+      }}>
         <div className="container">
+          {/* Profile grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
-            gap: '50px',
+            gridTemplateColumns: aboutGridCols,
+            gap: isPhone ? '30px' : '50px',
             alignItems: 'center',
-            marginBottom: '80px'
+            marginBottom: isPhone ? '50px' : '80px'
           }}>
             <div>
               <span className="section-tag" style={{ color: 'var(--accent-gold)' }}>Corporate Profile</span>
-              <h2 style={{ fontSize: '2.4rem', marginBottom: '20px', fontWeight: '700' }}>Building Landmarks with Structural Integrity</h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7', fontSize: '0.98rem' }}>
+              <h2 style={{
+                fontSize: isPhone ? 'clamp(1.4rem, 5vw, 1.8rem)' : isTablet ? '2rem' : '2.4rem',
+                marginBottom: '20px',
+                fontWeight: '700'
+              }}>
+                Building Landmarks with Structural Integrity
+              </h2>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.7', fontSize: isPhone ? '0.92rem' : '0.98rem' }}>
                 Nissi Constructions was established with a singular focus: to close the trust gap in the private residential sector. Over the years, we have scaled our operations from private custom homes to multi-story commercial properties and gated villa societies.
               </p>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '25px', lineHeight: '1.7', fontSize: '0.98rem' }}>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '25px', lineHeight: '1.7', fontSize: isPhone ? '0.92rem' : '0.98rem' }}>
                 We employ dedicated skilled construction workers, modular carpenters, and plumbing supervisors to execute tasks without outsourcing to sub-standard contractors.
               </p>
             </div>
@@ -512,38 +515,29 @@ const HomePage = () => {
           {/* Vision & Mission Cards */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: '30px',
-            marginBottom: '80px'
+            gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr',
+            gap: isPhone ? '16px' : '30px',
+            marginBottom: isPhone ? '50px' : '80px'
           }}>
-            <div className="glass-card" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', padding: '30px', background: 'var(--card-glass)' }}>
-              <div style={{ background: 'rgba(212,175,55,0.08)', padding: '15px', borderRadius: '12px', color: 'var(--accent-gold)' }}>
-                <Target size={30} />
+            {[
+              { icon: <Target size={28} />, title: 'Our Mission', text: 'To design and build structures of superior quality and safety, ensuring absolute pricing transparency and delivering luxury spaces that elevate our clients\' lifestyle.' },
+              { icon: <Hourglass size={28} />, title: 'Our Vision', text: 'To become India\'s most trusted luxury builder brand, recognized for sustainable building, Vastu design, and zero-defect handover completions.' }
+            ].map((card, i) => (
+              <div key={i} className="glass-card" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: 'var(--card-glass)' }}>
+                <div style={{ background: 'rgba(212,175,55,0.08)', padding: isPhone ? '12px' : '15px', borderRadius: '12px', color: 'var(--accent-gold)', flexShrink: 0 }}>
+                  {card.icon}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: isPhone ? '1.15rem' : '1.4rem', marginBottom: '10px', fontWeight: '700' }}>{card.title}</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: isPhone ? '0.87rem' : '0.92rem', lineHeight: '1.7', margin: 0 }}>{card.text}</p>
+                </div>
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', fontWeight: '700' }}>Our Mission</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: '1.7', margin: 0 }}>
-                  To design and build structures of superior quality and safety, ensuring absolute pricing transparency and delivering luxury spaces that elevate our clients' lifestyle.
-                </p>
-              </div>
-            </div>
-
-            <div className="glass-card" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', padding: '30px', background: 'var(--card-glass)' }}>
-              <div style={{ background: 'rgba(212,175,55,0.08)', padding: '15px', borderRadius: '12px', color: 'var(--accent-gold)' }}>
-                <Hourglass size={30} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', fontWeight: '700' }}>Our Vision</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: '1.7', margin: 0 }}>
-                  To become India's most trusted luxury builder brand, recognized for sustainable building, Vastu design, and zero-defect handover completions.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Core Values grid */}
           <div>
-            <div className="section-header" style={{ textAlign: 'center', marginBottom: '50px' }}>
+            <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '50px' }}>
               <span className="section-tag">Foundations</span>
               <h2 className="section-title">Our Core Values</h2>
               <p className="section-subtitle">Principles dictating every foundation block we excavate and every brick we lay.</p>
@@ -551,16 +545,14 @@ const HomePage = () => {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '25px'
+              gridTemplateColumns: isPhone ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: isPhone ? '16px' : '25px'
             }}>
               {coreValues.map((value, index) => (
-                <div key={index} className="glass-card" style={{ padding: '30px', background: 'var(--card-glass)' }}>
-                  <div style={{ color: 'var(--accent-gold)', marginBottom: '20px' }}>
-                    {value.icon}
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', marginBottom: '10px', fontWeight: '700' }}>{value.title}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: '1.6', margin: 0 }}>{value.desc}</p>
+                <div key={index} className="glass-card" style={{ background: 'var(--card-glass)' }}>
+                  <div style={{ color: 'var(--accent-gold)', marginBottom: '16px' }}>{value.icon}</div>
+                  <h3 style={{ fontSize: isPhone ? '1.05rem' : '1.25rem', marginBottom: '10px', fontWeight: '700' }}>{value.title}</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: isPhone ? '0.85rem' : '0.88rem', lineHeight: '1.6', margin: 0 }}>{value.desc}</p>
                 </div>
               ))}
             </div>
@@ -568,12 +560,14 @@ const HomePage = () => {
         </div>
       </section>
 
-
-
-      {/* 3. Services Section */}
-      <section id="services" style={{ padding: '100px 5%', background: 'var(--primary-dark)', borderTop: '1px solid var(--border-glass)' }}>
+      {/* ── 3. Services Section ── */}
+      <section id="services" style={{
+        padding: `clamp(60px, 8vw, 100px) clamp(4%, 5%, 5%)`,
+        background: 'var(--primary-dark)',
+        borderTop: '1px solid var(--border-glass)'
+      }}>
         <div className="container">
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '60px' }}>
             <span className="section-tag" style={{ color: 'var(--accent-gold)' }}>Expertise Directory</span>
             <h2 className="section-title">Our Construction Services</h2>
             <p className="section-subtitle" style={{ maxWidth: '600px', margin: '15px auto 0 auto' }}>
@@ -585,8 +579,8 @@ const HomePage = () => {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-            gap: '20px',
+            gridTemplateColumns: servicesGridCols,
+            gap: '16px',
             alignItems: 'start'
           }}>
             {services.map(service => {
@@ -594,18 +588,10 @@ const HomePage = () => {
               return (
                 <div
                   key={service._id}
-                  style={{
-                    position: 'relative',
-                    height: '62px',
-                  }}
-                  onMouseEnter={() => {
-                    if (!isMobile) setHoveredService(service._id);
-                  }}
-                  onMouseLeave={() => {
-                    if (!isMobile) setHoveredService(null);
-                  }}
+                  style={{ position: 'relative', height: '62px' }}
+                  onMouseEnter={() => { if (!isMobile) setHoveredService(service._id); }}
+                  onMouseLeave={() => { if (!isMobile) setHoveredService(null); }}
                 >
-                  {/* Collapsible / Expandable Service Card */}
                   <div
                     onClick={() => {
                       if (isMobile) {
@@ -615,99 +601,62 @@ const HomePage = () => {
                     }}
                     style={{
                       position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      padding: '18px 24px',
+                      top: 0, left: 0, right: 0,
+                      padding: '18px 20px',
                       borderRadius: '12px',
-                      border: '1px solid var(--border-glass)',
+                      border: `1px solid ${isHovered ? 'var(--accent-gold)' : 'var(--border-glass)'}`,
                       background: isHovered ? 'var(--secondary-dark)' : 'var(--primary-dark)',
                       cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                      borderColor: isHovered ? 'var(--accent-gold)' : 'var(--border-glass)',
-                      boxShadow: isHovered ? '0 15px 35px rgba(0,0,0,0.3), 0 0 20px rgba(212, 175, 55, 0.1)' : 'none',
+                      boxShadow: isHovered ? '0 15px 35px rgba(0,0,0,0.15), 0 0 20px rgba(212,175,55,0.1)' : 'none',
                       zIndex: isHovered ? 100 : 1,
                       overflow: 'hidden',
                       maxHeight: isHovered ? '600px' : '62px',
                       display: 'flex',
-                      flexDirection: 'column'
+                      flexDirection: 'column',
+                      touchAction: 'manipulation',
                     }}
                   >
-                    {/* Header / Collapsed State */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      minHeight: '24px'
-                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '24px' }}>
                       <span style={{
                         fontWeight: isHovered ? '600' : '400',
                         color: isHovered ? 'var(--accent-gold)' : 'var(--text-light)',
-                        fontSize: '0.98rem',
+                        fontSize: isPhone ? '0.9rem' : '0.98rem',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        textOverflow: 'ellipsis',
+                        flex: 1
                       }}>
                         {service.title}
                       </span>
                       <ChevronDown size={16} style={{
                         color: isHovered ? 'var(--accent-gold)' : 'var(--text-muted)',
                         transform: isHovered ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.3s ease'
+                        transition: 'transform 0.3s ease',
+                        flexShrink: 0,
+                        marginLeft: '8px'
                       }} />
                     </div>
 
-                    {/* Expanded Content */}
                     {isHovered && (
-                      <div style={{
-                        marginTop: '15px',
-                        animation: 'fadeIn 0.2s ease-out',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                      }}>
-                        {/* About Service Description */}
-                        <p style={{
-                          color: 'var(--text-light)',
-                          fontSize: '0.85rem',
-                          lineHeight: '1.4',
-                          margin: 0,
-                          opacity: 0.9
-                        }}>
+                      <div style={{ marginTop: '15px', animation: 'fadeIn 0.2s ease-out', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', lineHeight: '1.4', margin: 0, opacity: 0.9 }}>
                           {service.description}
                         </p>
-
-                        {/* Contact Helpline */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          fontSize: '0.8rem',
-                          color: 'var(--text-muted)',
-                          borderTop: '1px solid var(--border-glass)',
-                          paddingTop: '10px'
-                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-glass)', paddingTop: '10px' }}>
                           <Phone size={12} style={{ color: 'var(--accent-gold)' }} />
                           <span>{t('Direct Support')}: <strong style={{ color: 'var(--white)' }}>+91 87904 20585</strong></span>
                         </div>
-
-                        {/* Actions Button Bar */}
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               setSelectedService(service);
                               setShowBookingModal(true);
                               setBookingSuccess(false);
                             }}
                             className="btn btn-primary"
-                            style={{
-                              padding: '8px 12px',
-                              fontSize: '0.75rem',
-                              flex: 1,
-                              fontWeight: '600'
-                            }}
+                            style={{ padding: '8px 12px', fontSize: '0.75rem', flex: 1, fontWeight: '600' }}
                           >
                             {t('Book Call')}
                           </button>
@@ -716,17 +665,8 @@ const HomePage = () => {
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-secondary"
-                            style={{
-                              padding: '8px 12px',
-                              fontSize: '0.75rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px',
-                              textDecoration: 'none',
-                              fontWeight: '600'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
+                            style={{ padding: '8px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', textDecoration: 'none', fontWeight: '600' }}
+                            onClick={e => e.stopPropagation()}
                           >
                             {t('WhatsApp')} <ArrowUpRight size={12} />
                           </a>
@@ -741,24 +681,24 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* 4. Contact Section */}
-      <section id="contact" style={{ padding: '100px 5%', background: 'var(--secondary-dark)', borderTop: '1px solid var(--border-glass)' }}>
+      {/* ── 4. Contact Section ── */}
+      <section id="contact" style={{
+        padding: `clamp(60px, 8vw, 100px) clamp(4%, 5%, 5%)`,
+        background: 'var(--secondary-dark)',
+        borderTop: '1px solid var(--border-glass)'
+      }}>
         <div className="container">
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: isPhone ? '30px' : '60px' }}>
             <span className="section-tag" style={{ color: 'var(--accent-gold)' }}>Get In Touch</span>
             <h2 className="section-title">Contact Nissi Constructions Desk</h2>
             <p className="section-subtitle">Book a site assessment visit, request a blueprint estimate, or ask questions.</p>
           </div>
 
-          <div style={{
-            maxWidth: '650px',
-            margin: '0 auto'
-          }}>
-            {/* Message Form Card */}
-            <div className="glass-card" style={{ padding: '40px', background: 'var(--card-glass)', border: '1px solid var(--border-glass)', borderRadius: '16px' }}>
-              <h3 style={{ fontSize: '1.6rem', marginBottom: '25px', color: 'var(--white)', fontWeight: '700', textAlign: 'center' }}>Send Message</h3>
+          <div style={{ maxWidth: '650px', margin: '0 auto', width: '100%' }}>
+            <div className="glass-card" style={{ padding: isPhone ? '24px' : '40px', background: 'var(--card-glass)', border: '1px solid var(--border-glass)', borderRadius: '16px' }}>
+              <h3 style={{ fontSize: isPhone ? '1.3rem' : '1.6rem', marginBottom: '25px', color: 'var(--white)', fontWeight: '700', textAlign: 'center' }}>Send Message</h3>
 
-              {contactSuccess ? (
+              {contactSuccess && (
                 <div style={{
                   background: 'rgba(16, 185, 129, 0.1)',
                   border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -769,58 +709,31 @@ const HomePage = () => {
                   marginBottom: '20px'
                 }}>
                   <CheckCircle2 size={40} style={{ color: '#10B981', margin: '0 auto 10px auto' }} />
-                  <h4 style={{ fontSize: '1.25rem', marginBottom: '5px', fontWeight: '700' }}>Message Submitted!</h4>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
-                    We will reach out as soon as possible.
-                  </p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '5px', fontWeight: '700' }}>Message Submitted!</h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>We will reach out as soon as possible.</p>
                 </div>
-              ) : null}
+              )}
 
               <form onSubmit={handleContactSubmit}>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>Full Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    required
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="e.g. Suresh Kumar"
-                  />
+                  <input type="text" className="form-control" required value={contactName} onChange={e => setContactName(e.target.value)} placeholder="e.g. Suresh Kumar" />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: formGridCols, gap: '16px' }}>
                   <div className="form-group">
                     <label className="form-label" style={{ color: 'var(--text-light)' }}>Email Address</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      required
-                      value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
-                      placeholder="e.g. suresh@example.com"
-                    />
+                    <input type="email" className="form-control" required value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="e.g. suresh@example.com" />
                   </div>
                   <div className="form-group">
                     <label className="form-label" style={{ color: 'var(--text-light)' }}>{t('Phone Number')}</label>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      required
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
-                      placeholder="e.g. +91 87904 20585"
-                    />
+                    <input type="tel" className="form-control" required value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="e.g. +91 87904 20585" />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>Inquiry Area</label>
-                  <select
-                    className="form-control"
-                    value={contactServiceType}
-                    onChange={(e) => setContactServiceType(e.target.value)}
-                  >
+                  <select className="form-control" value={contactServiceType} onChange={e => setContactServiceType(e.target.value)}>
                     <option value="General Inquiry">General Inquiry / Greeting</option>
                     <option value="Residential Construction">Residential Construction</option>
                     <option value="Villa Cost Estimate">Villa Cost Estimate</option>
@@ -835,9 +748,9 @@ const HomePage = () => {
                     rows="4"
                     required
                     value={contactMessage}
-                    onChange={(e) => setContactMessage(e.target.value)}
+                    onChange={e => setContactMessage(e.target.value)}
                     placeholder="Describe your site details, Vastu preferences, plot size, budget specs..."
-                  ></textarea>
+                  />
                 </div>
 
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '14px' }} disabled={contactLoading}>
@@ -849,227 +762,224 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Modern Detailed Drawer Modal (Mobile Only) */}
+      {/* ── Mobile Service Drawer (bottom sheet on phone, side panel on tablet) ── */}
       {isMobile && selectedService && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 1000,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'stretch',
-          animation: 'fadeIn 0.3s ease'
-        }}>
-          <div style={{ flexGrow: 1 }} onClick={() => setSelectedService(null)} />
-
-          <div style={{
-            width: '100%',
-            maxWidth: '680px',
-            background: 'var(--card-glass)',
-            borderLeft: '1px solid var(--border-glass)',
-            boxShadow: '-10px 0 40px rgba(0,0,0,0.08)',
+        <div
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 2000,
             display: 'flex',
-            flexDirection: 'column',
-            overflowY: 'auto',
-            animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}>
-            {/* Icon-based Header — replaces broken image */}
+            flexDirection: isPhone ? 'column' : 'row',
+            justifyContent: isPhone ? 'flex-end' : 'flex-end',
+            alignItems: isPhone ? 'stretch' : 'stretch',
+          }}
+          onClick={() => setSelectedService(null)}
+        >
+          <div
+            style={{
+              background: 'var(--card-glass)',
+              borderTop: isPhone ? '1px solid var(--border-glass)' : 'none',
+              borderLeft: isPhone ? 'none' : '1px solid var(--border-glass)',
+              boxShadow: isPhone ? '0 -10px 40px rgba(0,0,0,0.15)' : '-10px 0 40px rgba(0,0,0,0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              animation: isPhone ? 'slideInUp 0.35s cubic-bezier(0.16,1,0.3,1)' : 'slideInRight 0.35s cubic-bezier(0.16,1,0.3,1)',
+              /* Phone: full width bottom sheet, up to 90vh */
+              width: isPhone ? '100%' : 'min(100%, 420px)',
+              maxHeight: isPhone ? '92vh' : '100%',
+              borderRadius: isPhone ? '20px 20px 0 0' : '0',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
             <div style={{
               position: 'relative',
               background: 'linear-gradient(135deg, var(--secondary-dark) 0%, var(--primary-dark) 100%)',
               borderBottom: '1px solid var(--border-glass)',
-              padding: '40px 30px 28px 30px',
+              padding: isPhone ? '24px 20px 20px' : '36px 28px 24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px'
+              gap: '12px',
             }}>
-              {/* Close button */}
+              {/* Drag pill on phone */}
+              {isPhone && (
+                <div style={{
+                  width: '36px', height: '4px', borderRadius: '2px',
+                  background: 'var(--border-glass)', margin: '-8px auto 4px auto'
+                }} />
+              )}
+
               <button
                 onClick={() => setSelectedService(null)}
                 style={{
-                  position: 'absolute',
-                  top: '16px',
-                  right: '16px',
-                  background: 'var(--border-glass)',
-                  color: 'var(--white)',
+                  position: 'absolute', top: '14px', right: '14px',
+                  background: 'rgba(0,0,0,0.12)', color: 'var(--white)',
                   border: '1px solid var(--border-glass)',
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)'
+                  width: '34px', height: '34px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer'
                 }}
               >
-                <X size={18} />
+                <X size={16} />
               </button>
 
-              {/* Icon badge */}
               <div style={{
-                width: '58px',
-                height: '58px',
-                borderRadius: '14px',
-                background: 'rgba(212, 175, 55, 0.12)',
-                border: '1px solid rgba(212, 175, 55, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: '50px', height: '50px', borderRadius: '12px',
+                background: 'rgba(212,175,55,0.12)',
+                border: '1px solid rgba(212,175,55,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
-                <ServiceIcon iconName={selectedService.icon} size={28} style={{ color: 'var(--accent-gold)' }} />
+                <ServiceIcon iconName={selectedService.icon} size={24} style={{ color: 'var(--accent-gold)' }} />
               </div>
 
               <div>
                 {selectedService.category && (
-                  <span style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--accent-gold)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>
                     {selectedService.category}
                   </span>
                 )}
-                <h2 style={{ fontSize: '1.7rem', color: 'var(--white)', fontWeight: '800', marginTop: '6px', lineHeight: '1.2' }}>
+                <h2 style={{ fontSize: isPhone ? '1.45rem' : '1.7rem', color: 'var(--white)', fontWeight: '800', marginTop: '4px', lineHeight: '1.2' }}>
                   {selectedService.title}
                 </h2>
               </div>
             </div>
 
             {/* Content Body */}
-            <div style={{ padding: '30px 30px 40px 30px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-
-              {/* Description */}
+            <div style={{ padding: isPhone ? '20px' : '28px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
               <div>
-                <p style={{ color: 'var(--text-light)', fontSize: '1.02rem', lineHeight: '1.7', margin: 0 }}>
+                <p style={{ color: 'var(--text-light)', fontSize: isPhone ? '0.95rem' : '1.02rem', lineHeight: '1.7', margin: 0 }}>
                   {selectedService.description}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
                   <button
                     onClick={() => { setShowBookingModal(true); setBookingSuccess(false); }}
                     className="btn btn-primary"
-                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}
                   >
                     {t('Request Consultation')} <PhoneCall size={16} />
                   </button>
                   <a
                     href={`https://wa.me/917601078843?text=Hello,%20I%20am%20interested%20in%20your%20${encodeURIComponent(selectedService.title)}%20services.`}
-                    target="_blank"
-                    rel="noreferrer"
+                    target="_blank" rel="noreferrer"
                     className="btn btn-secondary"
-                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    style={{ padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', textDecoration: 'none' }}
                   >
                     {t('Chat via WhatsApp')} <ArrowUpRight size={16} />
                   </a>
                 </div>
               </div>
 
-              {/* Key Benefits */}
-              {selectedService.benefits && selectedService.benefits.length > 0 && (
-                <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '20px' }}>
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--accent-gold)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
-                    <FileCheck2 size={18} /> Key Benefits & Standards
+              {selectedService.benefits?.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '18px' }}>
+                  <h3 style={{ fontSize: '1.05rem', color: 'var(--accent-gold)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                    <FileCheck2 size={16} /> Key Benefits & Standards
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {selectedService.benefits.map((benefit, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                         <CheckCircle2 size={14} style={{ color: 'var(--accent-gold)', marginTop: '3px', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.92rem', color: 'var(--text-muted)' }}>{benefit}</span>
+                        <span style={{ fontSize: isPhone ? '0.88rem' : '0.92rem', color: 'var(--text-muted)' }}>{benefit}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Execution Process Steps */}
-              {selectedService.process && selectedService.process.length > 0 && (
-                <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '20px' }}>
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--accent-gold)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
-                    <HelpCircle size={18} /> Execution Workflow
+              {selectedService.process?.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '18px' }}>
+                  <h3 style={{ fontSize: '1.05rem', color: 'var(--accent-gold)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                    <HelpCircle size={16} /> Execution Workflow
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {selectedService.process.map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '12px' }}>
                         <div style={{
-                          background: 'rgba(212, 175, 55, 0.1)',
-                          color: 'var(--accent-gold)',
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold',
-                          fontSize: '0.8rem',
-                          flexShrink: 0
+                          background: 'rgba(212,175,55,0.1)', color: 'var(--accent-gold)',
+                          width: '26px', height: '26px', borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 'bold', fontSize: '0.78rem', flexShrink: 0
                         }}>
                           {step.stepNumber || idx + 1}
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '0.95rem', color: 'var(--white)', fontWeight: '600', marginBottom: '2px' }}>{step.title}</h4>
-                          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5' }}>{step.description}</p>
+                          <h4 style={{ fontSize: '0.9rem', color: 'var(--white)', fontWeight: '600', marginBottom: '2px' }}>{step.title}</h4>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', lineHeight: '1.5', margin: 0 }}>{step.description}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </div>
       )}
 
+      {/* ── Booking Modal ── */}
       {showBookingModal && (selectedService || services.find(s => s._id === hoveredService)) && (
         <div style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.4)',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
           backdropFilter: 'blur(8px)',
-          zIndex: 1100,
+          zIndex: 3000,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isPhone ? 'flex-end' : 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: isPhone ? '0' : '20px'
         }}>
-          <div className="modal-content glass-card" style={{ padding: '40px', maxWidth: '500px', width: '100%', position: 'relative', background: 'var(--card-glass)' }}>
+          <div style={{
+            background: 'var(--card-glass)',
+            border: '1px solid var(--border-glass)',
+            borderRadius: isPhone ? '20px 20px 0 0' : '16px',
+            width: '100%',
+            maxWidth: isPhone ? '100%' : '500px',
+            maxHeight: isPhone ? '92vh' : '90vh',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            padding: isPhone ? '24px 20px' : '40px',
+            position: 'relative',
+            animation: isPhone ? 'slideInUp 0.3s cubic-bezier(0.16,1,0.3,1)' : 'fadeIn 0.25s ease'
+          }}>
+            {/* Drag pill on phone */}
+            {isPhone && (
+              <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'var(--border-glass)', margin: '-8px auto 16px auto' }} />
+            )}
+
             <button
-              className="modal-close"
               onClick={() => setShowBookingModal(false)}
               style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer'
+                position: 'absolute', top: '16px', right: '16px',
+                background: 'none', border: 'none',
+                color: 'var(--text-muted)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '6px', borderRadius: '50'
               }}
             >
               <X size={20} />
             </button>
 
-            <h3 style={{ fontSize: '1.6rem', marginBottom: '10px', textAlign: 'center', color: 'var(--white)', fontWeight: '700' }}>Inquire for Service</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '25px', textAlign: 'center' }}>
-              Confirming a callback session for: <strong style={{ color: 'var(--accent-gold)' }}>{(selectedService || services.find(s => s._id === hoveredService))?.title}</strong>.
+            <h3 style={{ fontSize: isPhone ? '1.3rem' : '1.6rem', marginBottom: '8px', textAlign: 'center', color: 'var(--white)', fontWeight: '700' }}>
+              Inquire for Service
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '22px', textAlign: 'center' }}>
+              Confirming a callback session for:{' '}
+              <strong style={{ color: 'var(--accent-gold)' }}>
+                {(selectedService || services.find(s => s._id === hoveredService))?.title}
+              </strong>
             </p>
 
             {bookingSuccess ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <CheckCircle2 size={50} style={{ color: '#10B981', margin: '0 auto 15px auto' }} />
                 <h4 style={{ fontSize: '1.2rem', marginBottom: '10px', color: 'var(--white)' }}>Consultation Request Placed</h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Our project desk supervisor will reach out to you shortly.
-                </p>
-                <button
-                  onClick={() => setShowBookingModal(false)}
-                  className="btn btn-primary"
-                  style={{ marginTop: '20px', width: '100%' }}
-                >
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Our project desk supervisor will reach out to you shortly.</p>
+                <button onClick={() => setShowBookingModal(false)} className="btn btn-primary" style={{ marginTop: '20px', width: '100%' }}>
                   Close Window
                 </button>
               </div>
@@ -1077,49 +987,21 @@ const HomePage = () => {
               <form onSubmit={handleBookingSubmit}>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>Full Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    required
-                    value={bookingName}
-                    onChange={(e) => setBookingName(e.target.value)}
-                    placeholder="e.g. Suresh Kumar"
-                  />
+                  <input type="text" className="form-control" required value={bookingName} onChange={e => setBookingName(e.target.value)} placeholder="e.g. Suresh Kumar" />
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>{t('Phone Number')}</label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    required
-                    value={bookingPhone}
-                    onChange={(e) => setBookingPhone(e.target.value)}
-                    placeholder="e.g. +91 87904 20585"
-                  />
+                  <input type="tel" className="form-control" required value={bookingPhone} onChange={e => setBookingPhone(e.target.value)} placeholder="e.g. +91 87904 20585" />
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>Email Address</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    required
-                    value={bookingEmail}
-                    onChange={(e) => setBookingEmail(e.target.value)}
-                    placeholder="e.g. suresh@example.com"
-                  />
+                  <input type="email" className="form-control" required value={bookingEmail} onChange={e => setBookingEmail(e.target.value)} placeholder="e.g. suresh@example.com" />
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-light)' }}>Inquiry Message</label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    placeholder="Describe your project, timeline, location specifications..."
-                    value={bookingMessage}
-                    onChange={(e) => setBookingMessage(e.target.value)}
-                  ></textarea>
+                  <textarea className="form-control" rows="3" placeholder="Describe your project, timeline, location specifications..." value={bookingMessage} onChange={e => setBookingMessage(e.target.value)} />
                 </div>
-
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', marginTop: '10px' }} disabled={bookingLoading}>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '13px', marginTop: '8px' }} disabled={bookingLoading}>
                   {bookingLoading ? 'Submitting Details...' : 'Request Callback'}
                 </button>
               </form>
@@ -1127,19 +1009,6 @@ const HomePage = () => {
           </div>
         </div>
       )}
-
-      {/* Inline Keyframes style injection */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-      `}} />
     </div>
   );
 };

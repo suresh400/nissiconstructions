@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calculator, FileText, ArrowRight, CheckCircle2, RefreshCw } from 'lucide-react';
 
 const CalculatorPage = () => {
@@ -6,6 +6,18 @@ const CalculatorPage = () => {
   const [plotSize, setPlotSize] = useState(1500); // sq ft
   const [floors, setFloors] = useState(1);
   const [materialQuality, setMaterialQuality] = useState('premium'); // standard, premium, luxury
+
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [isPhone, setIsPhone] = useState(() => window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsPhone(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Rates definition per sq ft
   const rates = {
@@ -75,24 +87,24 @@ const CalculatorPage = () => {
       </section>
 
       {/* Main Calculator */}
-      <section className="section">
+      <section className="section" style={{ padding: isPhone ? '30px 0' : '80px 0' }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: '1.1fr 0.9fr',
-          gap: '40px',
+          gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
+          gap: isPhone ? '24px' : '40px',
           alignItems: 'start'
         }}>
           
           {/* Inputs Section */}
-          <div className="glass-card" style={{ padding: '35px' }}>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)' }}>
+          <div className="glass-card" style={{ padding: isPhone ? '20px' : '35px' }}>
+            <h3 style={{ fontSize: isPhone ? '1.25rem' : '1.5rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)' }}>
               <Calculator /> Calculator Inputs
             </h3>
 
             {/* Project Type */}
             <div className="form-group">
               <label className="form-label">Calculation Goal</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: isPhone ? 'column' : 'row', gap: '10px' }}>
                 <button
                   onClick={() => setCalcType('construction')}
                   style={{

@@ -11,12 +11,15 @@ const BeforeAfterSlider = ({ beforeImage, afterImage }) => {
     <div style={{
       position: 'relative',
       width: '100%',
-      height: '350px',
+      aspectRatio: '16 / 10',
+      minHeight: '220px',
+      maxHeight: '380px',
       overflow: 'hidden',
       borderRadius: '12px',
       border: '1px solid var(--border-glass)',
       boxShadow: 'var(--shadow-dark)',
-      userSelect: 'none'
+      userSelect: 'none',
+      touchAction: 'none'
     }}>
       {/* After Image (Background) */}
       <img 

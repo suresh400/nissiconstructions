@@ -32,6 +32,18 @@ const MarketplacePage = () => {
   // Detail Modal
   const [selectedProperty, setSelectedProperty] = useState(null);
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [isPhone, setIsPhone] = useState(() => window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsPhone(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchUser = () => {
       const stored = localStorage.getItem('user');
@@ -171,15 +183,15 @@ const MarketplacePage = () => {
       </section>
 
       {/* Filter and listings grid */}
-      <section className="section" style={{ paddingTop: '30px' }}>
+      <section className="section" style={{ paddingTop: '30px', paddingBottom: isPhone ? '40px' : '80px' }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: '300px 1fr',
-          gap: '30px',
+          gridTemplateColumns: isMobile ? '1fr' : '280px 1fr',
+          gap: isPhone ? '20px' : '30px',
           alignItems: 'start'
         }}>
           {/* Filters side sidebar */}
-          <div className="glass-card" style={{ padding: '25px', position: 'sticky', top: '100px' }}>
+          <div className="glass-card" style={{ padding: isPhone ? '18px' : '25px', position: isMobile ? 'static' : 'sticky', top: '100px' }}>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '20px', color: 'var(--accent-gold)' }}>Search Filters</h3>
             
             <div className="form-group">

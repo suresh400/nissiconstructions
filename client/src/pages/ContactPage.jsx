@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { sendEmailNotification } from '../utils/emailService';
@@ -12,6 +12,18 @@ const ContactPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [isPhone, setIsPhone] = useState(() => window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsPhone(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
@@ -75,15 +87,15 @@ const ContactPage = () => {
       </section>
 
       {/* Main Info & Form */}
-      <section className="section">
+      <section className="section" style={{ padding: isPhone ? '40px 0' : '80px 0' }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: '0.9fr 1.1fr',
-          gap: '50px',
+          gridTemplateColumns: isMobile ? '1fr' : '0.9fr 1.1fr',
+          gap: isPhone ? '30px' : '50px',
           alignItems: 'start'
         }}>
           {/* Info Side */}
-          <div className="glass-card" style={{ padding: '35px' }}>
+          <div className="glass-card" style={{ padding: isPhone ? '22px' : '35px' }}>
             <h3 style={{ fontSize: '1.6rem', marginBottom: '25px', color: 'var(--white)' }}>Head Office Information</h3>
             <p style={{ color: 'var(--text-muted)', marginBottom: '30px', fontSize: '0.95rem', lineHeight: '1.7' }}>
               Our design and estimation desk is headquartered in Hyderabad, Telangana. We welcome visits by prospective plot owners and commercial buyers.
@@ -143,8 +155,8 @@ const ContactPage = () => {
           </div>
 
           {/* Form Side */}
-          <div className="glass-card" style={{ padding: '35px' }}>
-            <h3 style={{ fontSize: '1.6rem', marginBottom: '25px', color: 'var(--white)' }}>Send Message</h3>
+          <div className="glass-card" style={{ padding: isPhone ? '22px' : '35px' }}>
+            <h3 style={{ fontSize: isPhone ? '1.3rem' : '1.6rem', marginBottom: '25px', color: 'var(--white)' }}>Send Message</h3>
 
             {success ? (
               <div style={{
@@ -192,7 +204,7 @@ const ContactPage = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
                   <input

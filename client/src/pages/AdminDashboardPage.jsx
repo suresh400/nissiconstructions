@@ -43,6 +43,18 @@ const AdminDashboardPage = () => {
   // Loading States
   const [loading, setLoading] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 860);
+  const [isPhone, setIsPhone] = useState(() => window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 860);
+      setIsPhone(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const checkAdmin = () => {
       const stored = localStorage.getItem('user');
@@ -233,17 +245,17 @@ const AdminDashboardPage = () => {
   };
 
   return (
-    <div style={{ paddingTop: '80px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ paddingTop: isPhone ? '60px' : '80px', minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       {/* Admin Title Banner */}
-      <section style={{ background: '#040710', borderBottom: '1px solid var(--border-glass)', padding: '30px 5%' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <section style={{ background: '#040710', borderBottom: '1px solid var(--border-glass)', padding: isPhone ? '20px 5%' : '30px 5%' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ background: 'rgba(212,175,55,0.1)', padding: '12px', borderRadius: '10px', color: 'var(--accent-gold)' }}>
-              <Shield size={28} />
+            <div style={{ background: 'rgba(212,175,55,0.1)', padding: '10px', borderRadius: '10px', color: 'var(--accent-gold)' }}>
+              <Shield size={24} />
             </div>
             <div>
-              <h1 style={{ fontSize: '2rem', color: 'white' }}>Nissi Constructions Admin Panel</h1>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Authorized personnel login session</span>
+              <h1 style={{ fontSize: isPhone ? '1.3rem' : '2rem', color: 'white', margin: 0 }}>Nissi Constructions Admin Panel</h1>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Authorized personnel login session</span>
             </div>
           </div>
           <button onClick={() => {
@@ -258,12 +270,12 @@ const AdminDashboardPage = () => {
       </section>
 
       {/* Main dashboard columns */}
-      <section className="section" style={{ flexGrow: 1, paddingTop: '30px' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '30px', alignItems: 'start' }}>
+      <section className="section" style={{ flexGrow: 1, paddingTop: '30px', paddingBottom: '60px' }}>
+        <div className="container" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '260px 1fr', gap: isPhone ? '20px' : '30px', alignItems: 'start' }}>
           
           {/* Tab Sidebar */}
-          <div className="glass-card" style={{ padding: '15px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div className="glass-card" style={{ padding: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: '6px', flexWrap: isMobile ? 'wrap' : 'nowrap', overflowX: isMobile ? 'auto' : 'visible' }}>
               <button
                 onClick={() => setActiveTab('leads')}
                 style={{
