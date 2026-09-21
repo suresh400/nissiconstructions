@@ -1,3 +1,7 @@
+/* ============================================================
+   StaggeredMenu — Responsive Navigation Panel
+   ============================================================ */
+
 .staggered-menu-wrapper {
   position: relative;
   width: 100%;
@@ -17,6 +21,7 @@
   pointer-events: none;
 }
 
+/* ── Header Bar ── */
 .staggered-menu-header {
   position: fixed;
   top: 0;
@@ -25,18 +30,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 5%;
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(4%, 5%, 5%);
   background: transparent;
   pointer-events: none;
   z-index: 100002;
-  transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              padding 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    padding 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .staggered-menu-header.scrolled {
   background: var(--primary-dark);
-  padding: 1rem 5%;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(4%, 5%, 5%);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   border-bottom: 1px solid var(--border-glass);
 }
@@ -45,6 +51,7 @@
   pointer-events: auto;
 }
 
+/* ── Logo ── */
 .sm-logo {
   display: flex;
   align-items: center;
@@ -58,6 +65,20 @@
   object-fit: contain;
 }
 
+/* Logo text sizing — shrinks on small screens */
+.navbar-logo-text {
+  font-size: clamp(1rem, 3vw, 1.4rem) !important;
+}
+
+/* Logo badge — consistent sizing */
+.navbar-logo-badge {
+  width: clamp(32px, 5vw, 40px) !important;
+  height: clamp(32px, 5vw, 40px) !important;
+  font-size: clamp(1.1rem, 3vw, 1.4rem) !important;
+  border-radius: 6px !important;
+}
+
+/* ── Toggle Button ── */
 .sm-toggle {
   position: relative;
   display: inline-flex;
@@ -68,11 +89,13 @@
   cursor: pointer;
   color: var(--white);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2vw, 1rem);
   font-family: var(--font-body);
   line-height: 1;
   overflow: visible;
   padding: 10px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sm-toggle:focus-visible {
@@ -104,21 +127,16 @@
   line-height: 1;
 }
 
+/* ── Hamburger Icon ── */
 .sm-icon {
   position: relative;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
+  width: clamp(14px, 2.5vw, 16px);
+  height: clamp(14px, 2.5vw, 16px);
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   will-change: transform;
-}
-
-.sm-panel-itemWrap {
-  position: relative;
-  overflow: hidden;
-  line-height: 1.2;
 }
 
 .sm-icon-line {
@@ -137,37 +155,13 @@
   transform: translate(-50%, -50%) rotate(90deg);
 }
 
-.staggered-menu-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: clamp(280px, 40vw, 440px);
-  height: 100%;
-  background: var(--card-glass);
-  border-left: 1px solid var(--border-glass);
-  box-shadow: -10px 0 40px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  padding: 8em 3em 3em 3em;
-  overflow-y: auto;
-  z-index: 100003;
-  pointer-events: auto;
-  opacity: 0;
-}
-
-[data-position='left'] .staggered-menu-panel {
-  right: auto;
-  left: 0;
-  border-left: none;
-  border-right: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 10px 0 40px rgba(0,0,0,0.03);
-}
-
+/* ── Pre-layers (colour swipe behind panel) ── */
 .sm-prelayers {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
+  /* Desktop: 40vw capped at 440px */
   width: clamp(280px, 40vw, 440px);
   pointer-events: none;
   z-index: 100002;
@@ -189,13 +183,114 @@
   opacity: 0;
 }
 
+/* ── Side Panel ── */
+.staggered-menu-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* Desktop: 40vw up to 440px */
+  width: clamp(280px, 40vw, 440px);
+  height: 100%;
+  background: var(--card-glass);
+  border-left: 1px solid var(--border-glass);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(5rem, 10vw, 8rem) clamp(1.5rem, 4vw, 3rem) 3rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100003;
+  pointer-events: auto;
+  opacity: 0;
+  /* Smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-position='left'] .staggered-menu-panel {
+  right: auto;
+  left: 0;
+  border-left: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.03);
+}
+
+/* ── Panel Inner ── */
 .sm-panel-inner {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: clamp(1rem, 2.5vw, 2rem);
 }
 
+/* ── Panel item wrap (overflow hidden clips animation) ── */
+.sm-panel-itemWrap {
+  position: relative;
+  overflow: hidden;
+  line-height: 1.2;
+}
+
+/* ── Panel Links ── */
+.sm-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+.sm-panel-item {
+  position: relative;
+  color: var(--white);
+  font-weight: 700;
+  /* Fluid: 2rem on mobile → 3rem on desktop */
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-family: var(--font-heading);
+  cursor: pointer;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  transition: color 0.25s ease;
+  display: inline-block;
+  text-decoration: none;
+  padding-right: 1.4em;
+  /* Prevent text overflow on small panel widths */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sm-panel-itemLabel {
+  display: inline-block;
+  will-change: transform;
+  transform-origin: 50% 100%;
+}
+
+.sm-panel-item:hover { color: var(--accent-gold); }
+
+/* ── Numbered counters ── */
+.sm-panel-list[data-numbering] {
+  counter-reset: smItem;
+}
+
+.sm-panel-list[data-numbering] .sm-panel-item::after {
+  counter-increment: smItem;
+  content: counter(smItem, decimal-leading-zero);
+  position: absolute;
+  top: 0.15em;
+  right: 0.5em;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  font-weight: 600;
+  color: var(--accent-gold);
+  letter-spacing: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: var(--sm-num-opacity, 0);
+  transition: opacity 0.3s ease;
+}
+
+/* ── Socials ── */
 .sm-socials {
   margin-top: auto;
   padding-top: 2rem;
@@ -221,12 +316,12 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(0.8rem, 2.5vw, 1.5rem);
   flex-wrap: wrap;
 }
 
 .sm-socials-link {
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 2vw, 0.95rem);
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
@@ -234,81 +329,104 @@
   padding: 2px 0;
   display: inline-block;
   transition: color 0.3s ease, opacity 0.3s ease;
+  /* Large tap target on mobile */
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.sm-socials-link:hover {
-  color: var(--accent-gold);
-}
+.sm-socials-link:hover { color: var(--accent-gold); }
 
-.sm-panel-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
 
-.sm-panel-item {
-  position: relative;
-  color: var(--white);
-  font-weight: 700;
-  font-size: 3rem;
-  font-family: var(--font-heading);
-  cursor: pointer;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  text-transform: uppercase;
-  transition: color 0.25s ease;
-  display: inline-block;
-  text-decoration: none;
-  padding-right: 1.4em;
-}
-
-.sm-panel-itemLabel {
-  display: inline-block;
-  will-change: transform;
-  transform-origin: 50% 100%;
-}
-
-.sm-panel-item:hover {
-  color: var(--accent-gold);
-}
-
-.sm-panel-list[data-numbering] {
-  counter-reset: smItem;
-}
-
-.sm-panel-list[data-numbering] .sm-panel-item::after {
-  counter-increment: smItem;
-  content: counter(smItem, decimal-leading-zero);
-  position: absolute;
-  top: 0.15em;
-  right: 0.5em;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--accent-gold);
-  letter-spacing: 0;
-  pointer-events: none;
-  user-select: none;
-  opacity: var(--sm-num-opacity, 0);
-  transition: opacity 0.3s ease;
-}
-
+/* ── Tablet (≤768px) — panel takes 70vw ── */
 @media (max-width: 768px) {
-  .staggered-menu-panel, .sm-prelayers {
+  .staggered-menu-panel,
+  .sm-prelayers {
+    width: clamp(280px, 70vw, 380px);
+  }
+
+  .sm-panel-item {
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    white-space: normal;
+    text-overflow: unset;
+    padding-right: 1.2em;
+  }
+
+  .staggered-menu-header {
+    padding: 1rem 4%;
+  }
+  .staggered-menu-header.scrolled {
+    padding: 0.75rem 4%;
+  }
+}
+
+/* ── Phone (≤480px) — panel goes full width ── */
+@media (max-width: 480px) {
+  .staggered-menu-panel,
+  .sm-prelayers {
     width: 100%;
     left: 0;
     right: 0;
   }
+
+  .staggered-menu-panel {
+    padding: 5rem 1.5rem 2rem 1.5rem;
+  }
+
+  .sm-panel-item {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+    letter-spacing: -0.5px;
+  }
+
+  .sm-panel-list {
+    gap: 0.4rem;
+  }
+
+  .sm-panel-inner {
+    gap: 1rem;
+  }
+
+  .staggered-menu-header {
+    padding: 0.9rem 4%;
+  }
+
+  .navbar-logo-text {
+    font-size: clamp(0.9rem, 4vw, 1.2rem) !important;
+  }
+
+  .navbar-logo-badge {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 1rem !important;
+  }
+
+  .sm-toggle {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
+  /* Hide text label on very small screens, keep icon */
+  .sm-toggle-textWrap {
+    display: none;
+  }
+}
+
+/* ── Very small phones (≤360px) ── */
+@media (max-width: 360px) {
+  .staggered-menu-panel {
+    padding: 4.5rem 1.2rem 1.5rem 1.2rem;
+  }
+  .sm-panel-item {
+    font-size: clamp(1.4rem, 9vw, 2rem);
+  }
 }
 
 /* ============================================================
-   Navbar Dark Mode & Light Mode Explicit Color Rules
-   Guarantees pure white text in dark mode and clear contrast in light mode
+   Dark Mode Overrides
    ============================================================ */
-
-/* Dark Mode - Pure White Navbar Text & Elements */
 body.dark-mode .staggered-menu-header,
 .theme-dark-wrapper .staggered-menu-header {
   color: #FFFFFF !important;
@@ -360,7 +478,7 @@ body.dark-mode .staggered-menu-panel .sm-panel-item,
   color: #FFFFFF !important;
 }
 
-/* Light Mode - Dark / Charcoal Text & Elements */
+/* ── Light Mode Overrides ── */
 body:not(.dark-mode) .staggered-menu-header.scrolled {
   background: #FFFFFF !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
